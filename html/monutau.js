@@ -2,6 +2,24 @@
 var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35]; 
 
 
+
+function updateRunlist() 
+{
+  var xhr = new XMLHttpRequest() ;
+  xhr.open('GET','runlist.json'); 
+  xhr.onload = function() 
+  {
+    if (xhr.status == 200) 
+    {
+      json = JSON.parse(xhr.response); 
+      runs = json.runs; 
+      document.getElementById('last_updated').innerHTML= json.last_updated; 
+    }
+  }
+  xhr.send() 
+}
+
+
 function optClear()
 {
   document.getElementById('opt').innerHTML = ""; 
@@ -1188,5 +1206,6 @@ function monutau_load()
   {
     show(hash.substring(1).split('&')[0]); 
   }
+  setInterval(updateRunlist, 10e3); 
 }
 

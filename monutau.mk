@@ -95,11 +95,22 @@ rootify: rootify.d rootify-event rootify-status rootify-header rootify-hk
 	touch $@ 
 
 ##TODO 
-html/runlist.js: rootify 
+
+html/runs: rootify
+	find $(ROOT_DIR) -type d -name run* -printf '  %f\n' | sed 's/run//' | sort -n  | paste -s -d ',' > $@ 
+
+html/runlist.js: html/runs
 	echo "var runs = [ " > $@ 
-	find $(ROOT_DIR) -type d -name run* -printf '  %f,\n' | sed 's/run//' | sort -n  >> $@ 
+	cat  $< >> $@
 	echo "];" >> $@
 	echo "var last_updated = \"`date -u`\";" >> $@ 
+
+html/runlist.json: html/runs
+	echo "{ \"runs\" : [" > $@
+	sed -e 's/,^//g'  $< >> $@
+	echo "]," >> $@
+	echo "\"last_updated\" : \"`date -u`\"" >> $@ 
+	echo "}" >> $@
 
 $(HTML_DIR)/% : html/% 
 	cp  $< $@
@@ -121,7 +132,7 @@ $(HTML_DIR)/jsroot: jsroot/scripts jsroot/style
 	cp -r $^ $@
 
 
-deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js  $(HTML_DIR)/runlist.js $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png $(HTML_DIR)/KissFFT.js $(HTML_DIR)/FFT.js | $(HTML_DIR) 
+deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js  $(HTML_DIR)/runlist.js $(HTML_DIR)/runlist.json  $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png $(HTML_DIR)/KissFFT.js $(HTML_DIR)/FFT.js | $(HTML_DIR) 
 	touch $@ 
 
 
