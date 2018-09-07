@@ -15,13 +15,13 @@
 #SBATCH --qos=cron
 
 # Specify a valid cron string for the schedule
-# this is every hour
-SCHEDULE='5 * * * *'
+# this is every half an hour
+SCHEDULE='29,59 * * * *'
 
 
 #cancel any other script if there is one already
 scancel --name monutau 
-sbatch -A pi-avieregg -p sandyb monutau 
+sbatch -A pi-avieregg -p sandyb monutau.sbatch
 
 # resubmit this script with --begin set to the next scheduled cron time
 # next-cron-time is a script that parses a cron schedule string and returns
