@@ -29,10 +29,7 @@ clean:
 ### Copy over new files 
 sync: | $(RAW_DIR) 
 ifdef REMOTE_HOST
-	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/$(STATUS_DIR) $(RAW_DIR)/ >> $@
-	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/$(HK_DIR) $(RAW_DIR)/ >> $@
-	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/$(EVENT_DIR) $(RAW_DIR)/ >> $@
-	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/$(HEADER_DIR) $(RAW_DIR)/ >> $@
+	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >> $@
 else
 	echo "No need to sync" 
 endif
