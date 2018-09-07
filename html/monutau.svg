@@ -7,7 +7,6 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="96"
@@ -15,7 +14,7 @@
    viewBox="0 0 96.000003 96.000003"
    id="svg2"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
    sodipodi:docname="monutor.svg"
    inkscape:export-filename="/home/cozzyd/Work/nuphase/monutor/html/monutor.png"
    inkscape:export-xdpi="90"
@@ -27,9 +26,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="34.300801"
-     inkscape:cy="54.218914"
+     inkscape:zoom="3.959798"
+     inkscape:cx="55.973446"
+     inkscape:cy="37.615423"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -45,31 +44,7 @@
      fit-margin-bottom="0"
      units="px" />
   <defs
-     id="defs4">
-    <linearGradient
-       id="linearGradient4153"
-       inkscape:collect="always">
-      <stop
-         id="stop4155"
-         offset="0"
-         style="stop-color:#808080;stop-opacity:1;" />
-      <stop
-         id="stop4157"
-         offset="1"
-         style="stop-color:#808080;stop-opacity:0;" />
-    </linearGradient>
-    <radialGradient
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.26556371,0,0,0.19883974,104.89782,415.55921)"
-       r="148.30017"
-       fy="424.86221"
-       fx="299.94302"
-       cy="424.86221"
-       cx="299.94302"
-       id="radialGradient4159-9"
-       xlink:href="#linearGradient4153"
-       inkscape:collect="always" />
-  </defs>
+     id="defs4" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -93,7 +68,7 @@
        height="96.737663"
        width="96.066185"
        id="rect3336"
-       style="opacity:1;fill:#4d4d4d;fill-opacity:1;stroke:#000000;stroke-width:0.32679668;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+       style="opacity:1;fill:#e6e6e6;fill-opacity:1;stroke:#000000;stroke-width:0.32679668;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
        rx="7.1944275"
        ry="8.9861164" />
     <rect
@@ -109,21 +84,22 @@
        height="58.751202"
        width="78.530365"
        id="rect3336-4-1"
-       style="opacity:1;fill:url(#radialGradient4159-9);fill-opacity:1;stroke:#000000;stroke-width:0.23026173;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+       style="opacity:1;fill:#333333;fill-opacity:1;stroke:#000000;stroke-width:0.23026173;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot4215"
-       style="font-style:normal;font-weight:normal;font-size:16.25px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#f2f2f2;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        transform="matrix(1.1788838,0,0,1.1788838,194.7731,30.380457)"><flowRegion
-         id="flowRegion4217"><rect
+         id="flowRegion4217"
+         style="font-family:sans-serif;fill:#f2f2f2"><rect
            id="rect4219"
            width="162.12949"
            height="154.55334"
            x="-37.375645"
            y="380.10565"
-           style="fill:#00ff00" /></flowRegion><flowPara
+           style="font-family:sans-serif;fill:#f2f2f2" /></flowRegion><flowPara
          id="flowPara4221"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:monospace;-inkscape-font-specification:monospace">$lsnu</flowPara><flowPara
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:monospace;-inkscape-font-specification:monospace"
-         id="flowPara4223"> .\/.</flowPara></flowRoot>  </g>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.25px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;fill:#f2f2f2"> /\&gt;--</flowPara><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.25px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;fill:#f2f2f2"
+         id="flowPara4223">/  \</flowPara></flowRoot>  </g>
 </svg>

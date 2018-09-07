@@ -1,5 +1,5 @@
 
-var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21]; 
+var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35]; 
 
 
 function optClear()
@@ -40,14 +40,12 @@ function prettyPrintHeader(vars)
   str += "<table><tr>"; 
   str += "<td>Event number: " + vars["header.event_number"] +"</td>"; 
   str += "<td>Trigger number: " + vars["header.trig_number"] +"</td>"; 
-  str += "<td>Readout time (master): " + new Date(parseInt(vars["header.readout_time"][0])*1000 + parseInt(vars["header.readout_time_ns"][0])/1e6).toISOString() +"</td>"; 
-  str += "<td>Readout time (slave): " + new Date(parseInt(vars["header.readout_time"][1])*1000 + parseInt(vars["header.readout_time_ns"][1])/1e6).toISOString() +"</td></tr>"; 
+  str += "<td>Readout time : " + new Date(parseInt(vars["header.readout_time"])*1000 + parseInt(vars["header.readout_time_ns"])/1e6).toISOString() +"</td>"; 
   var isRF = parseInt(vars["header.trigger_type"]) == 2; 
-  var isCalib = isRF && parseInt(vars["header.gate_flag"]); 
-  str += "<tr><td>Trigger type: " + ( isCalib ? "CALIB" : isRF ? "RF" : "FORCE") + "</td>"
-  var triggered_beam = Math.log2(parseInt(vars["header.triggered_beams"])); 
-  str += "<td>Triggered beam: " + (isRF? triggered_beam : "N/A") +"</td>"; 
-  str += "<td>Triggered beam power: " + (isRF ? vars["header.beam_power"][triggered_beam] : "N/A") + "</td>"; 
+  str += "<tr><td>Trigger type: " + ( isRF ? "RF" : "FORCE") + "</td>"
+  var triggered_beams = Math.log2(parseInt(vars["header.triggered_beams"])); 
+  str += "<td>Triggered beam: " + (isRF? triggered_beams : "N/A") +"</td>"; 
+  str += "<td>Triggered beam power: " + (isRF ? vars["header.beam_power"] : "N/A") + "</td>"; 
   str += "<td>Raw TrigTime: " +vars["header.trig_time"]+"</td></tr>"; 
   str += "</table> "; 
     
@@ -291,7 +289,7 @@ function doDraw(page, ts, what,cut)
   var real_ts = []; 
   for (var it = 0; it < ts.length; it++)
   {
-    if (ts[it] != null) real_ts.push(ts[it]); 
+    if (ts[it] != null && ts[it].fEntries > 0) real_ts.push(ts[it]); 
   }
 
 
@@ -376,7 +374,7 @@ function doDraw(page, ts, what,cut)
       {
 
         args = { expr: draws[j], cut: cut, graph: true, drawopt: [i,j,it]}; 
-//        console.log(args); 
+        console.log(args); 
         real_ts[it].Draw(args, function(g,indices,ignore)
         {
           var ii = indices[0]; 
@@ -563,7 +561,7 @@ function hk()
   optAppend("Cut: <input id='hk_cut' size=20 value='Entry$%10==0'>");
   optAppend(" | Full xfers(<a href='javascript:transferHelp()'>?</a>) : <input type=checkbox id='hk_full_transfers' checked> <br>" ); 
   optAppend("Plot(<a onClick='return plotHelp()'>?</a>):<br>");
-  optAppend("<textarea id='plot_hk' cols=160 rows=5>hk.unixTime:hk.temp_master|||hk.unixTime:hk.temp_slave|||hk.unixTime:hk.temp_case;;;xtitle:time;title:Temperatures;ytitle:C;xtime:1;labels:master,slave,case\nhk.unixTime:hk.current_master|||hk.unixTime:hk.current_slave|||hk.unixTime:hk.current_frontend;;;xtitle:time;ytitle:mA;labels:master,slave,frontend;xtime:1;title:currents\nhk.unixTime:hk.disk_space_kB;;;title:disk;xtitle:time;xtime:1;labels:disk;ytitle:kB</textarea>");
+  optAppend("<textarea id='plot_hk' cols=160 rows=5>hk.unixTime:hk.temp_board|||hk.unixTime:hk.temp_adc;;;xtitle:time;title:Temperatures;ytitle:C;xtime:1;labels:board,adc\nhk.unixTime:hk.frontend_current|||hk.unixTime:hk.adc_current|||hk.unixTime:hk.aux_current|||hk.unixTime:hk.ant_current;;;xtitle:time;ytitle:mA;labels:frontend,adc,aux,ant;xtime:1;title:currents\nhk.unixTime:hk.disk_space_kB;;;title:disk;xtitle:time;xtime:1;labels:disk;ytitle:kB</textarea>");
   optAppend("<br><input type='button' onClick='return hkTreeDraw()' value='Draw'>"); 
   optAppend("<a href='all_hk.root'>  (Download All HK ROOT File)</a>"); 
   
@@ -611,10 +609,8 @@ function go(i)
 
   var event_file = "rootdata/run" + run + "/event.root"; 
   document.getElementById('load').innerHTML = '<a href="'+event_file+'">Event File</a>'
-  var head_file = "rootdata/run" + run + "/header.filtered.root"; 
-  document.getElementById('load').innerHTML += ' | <a href="'+head_file+'">Filtered Head File</a>'
-  var full_head_file = "rootdata/run" + run + "/header.root"; 
-  document.getElementById('load').innerHTML += ' | <a href="'+full_head_file+'">Full Head File</a>'
+  var head_file = "rootdata/run" + run + "/header.root"; 
+  document.getElementById('load').innerHTML += ' | <a href="'+head_file+'">Head File</a>'
   var status_file = "rootdata/run" + run + "/status.root"; 
   document.getElementById('load').innerHTML += ' | <a href="'+status_file+'">Status File</a>'
 
@@ -708,7 +704,7 @@ function go(i)
 
         var X = []; 
         var ii = 0; 
-        for (var x = 0; x < N; x++) { X.push(x/1.5) }; 
+        for (var x = 0; x < N; x++) { X.push(x*2) }; 
         var do_fft = document.getElementById('evt_fft').checked; 
         var do_envelope = document.getElementById('evt_hilbert').checked; 
         var do_measure = document.getElementById('evt_measure').checked; 
@@ -716,179 +712,176 @@ function go(i)
         var upsample = document.getElementById('upsample').value; 
         var autoscale = document.getElementById('evt_autoscale').checked; 
 
-        for (var b = 0; b < data.length; b++)
+        for (var ch = 0; ch < data.length; ch++)
         {
-          for (var ch = 0; ch < data[b].length; ch++)
+          if (!arrNonZero(data[ch])) continue; 
+          var c =""; 
+
+          if (P.canvases.length < ii+2) 
           {
-            if (!arrNonZero(data[b][ch])) continue; 
-            var c =""; 
-
-            if (P.canvases.length < ii+2) 
-            {
-             c = addCanvas(pages['event'],"canvas_small",false) ;
-            }
-            else
-            { 
-              c = P.canvases[ii+1]; 
-              JSROOT.cleanup(c); 
-            }
-
-            var g= JSROOT.CreateTGraph(N, X, data[b][ch]); 
-
-            for (var y = 0; y < N; y++) { g.fY[y]-=64; } 
-
-            g.fTitle = " Evt" + ev + ", BD " + b + " , CH " + ch; 
-            g.fLineColor = graph_colors[0]; 
-            g.fMarkerColor = graph_colors[0]; 
-            g.InvertBit(JSROOT.BIT(18)); 
-            g.fName="g_b"+b+"_c"+ch; 
-
-            env = null; 
-
-            if (do_envelope && do_fft) 
-            {
-              env = JSROOT.CreateTGraph(0,[],[]); 
-              env.fLineColor = graph_colors[4]; 
-              env.fMarkerColor = graph_colors[4]; 
-              env.fTitle = "Envelope" 
-              env.fName = "envelope" 
-            }
-
-            P.graphs[2*ii]=g; 
-            P.graphs[2*ii+1]=env; 
-
-            if (do_measure)
-            {
-              var sum = 0; 
-              var sum2 = 0; 
-
-
-
-            }
-
-
-            if (do_fft) 
-            {
-              var fft =  spec(g,upsample, do_envelope ? env : null); 
-              if (do_avg && navg > 0) 
-              {
-                 if (ii ==0) navg++; 
-
-                 for (var ff = 0; ff < the_ffts[ii].fNpoints; ff++)
-                 {
-                   the_ffts[ii].fY[ff] =  10 * Math.log10((Math.pow(10, the_ffts[ii].fY[ff]/10) * (navg-1) + Math.pow(10, fft.fY[ff]/10)) / (navg)); 
-                 }
-
-              }
-              else
-              {
-                navg = do_avg ? 1 : 0; 
-                the_ffts[ii] =fft; 
-                the_ffts[ii].fLineColor = graph_colors[ii]; 
-                the_ffts[ii].fMarkerColor = graph_colors[ii]; 
-              }
-            }
-
-            var min=64; 
-            var max=-64; 
-            var sum2 = 0; 
-            var sum = 0;
-
-            if (autoscale || do_measure) 
-            {
-              for (var y = 0; y < g.fY.length; y++) 
-              {
-                  if (g.fY[y] < min) min = g.fY[y]; 
-                  if (g.fY[y] > max) max = g.fY[y]; 
-
-                  if (do_measure)
-                  {
-                    sum2 += g.fY[y]*g.fY[y]; 
-                    sum += g.fY[y]; 
-                  }
-              }
-
-            }
-            var delta = max-min;
-            var pave = null; 
-
-            if (do_measure) 
-            {
-              var avg = sum / g.fNpoints; 
-              var rms = Math.sqrt(sum2 / g.fNpoints - avg * avg); 
-
-              pave =  JSROOT.Create("TPaveText"); 
-              pave.fTitle="measurements"; 
-              pave.fName="measure"; 
-              pave.fLineStyle = 0; 
-              pave.fTextSize = 12; 
-              pave.fX1NDC=0.1; 
-              pave.fX2NDC=0.9; 
-              pave.fY1NDC=0.1; 
-              pave.fY2NDC=0.3; 
-              pave.AddText("max: " + max.toFixed(3) + "  min: " + min.toFixed(3) + "  Vpp: " + delta.toFixed(3)); 
-              pave.AddText("avg: " + avg.toFixed(3) + "  rms: " + rms.toFixed(3)); 
-              pave.fLines.arr[0].fTextColor = 5; 
-              pave.fLines.arr[1].fTextColor = 5; 
-              P.legends[ii] = pave; 
-            }
-
- 
-            if (!autoscale)
-            {
-              var range = parseInt(document.getElementById('evt_zoom').value); 
-              min= -range; 
-              max= range; 
-            }
-            else
-            {
-              max +=0.1*delta; 
-              min -=0.1*delta;
-            }
-
-            var histo = JSROOT.CreateHistogram("TH1I",100); 
-            histo.fName = g.fName + "_h";
-            histo.fTitle = g.fTitle;
-            histo.fXaxis.fXmin = 0;
-            histo.fXaxis.fXmax = N/1.5;;
-            histo.fYaxis.fXmin = min;
-            histo.fYaxis.fXmax = max;
-            histo.fMinimum = min;
-            histo.fMaximum = max;
-            histo.fXaxis.fTitle = "ns"; 
-            histo.fYaxis.fTitle = "adu"; 
-            setGraphHistStyle(histo); 
-            
-            g.fHistogram = histo; 
-
-            JSROOT.draw(c,g,"AL", function(painter)
-                {
-                  var hist = painter.GetObject().fHistogram; 
-                  painter.root_pad().fGridx = 1; 
-                  painter.root_pad().fGridy = 1; 
-                  var tpainter = painter.FindPainterFor(null,"title"); 
-                  var pavetext = tpainter.GetObject(); 
-                  pavetext.fTextColor = 31; 
-                  tpainter.Redraw(); 
-                  JSROOT.redraw(painter.divid, hist, ""); 
-                  if (do_envelope & do_fft) 
-                  {
-
-                  }
-                }); 
-
-            if (do_envelope && do_fft) 
-            {
-              JSROOT.draw(c,env, "LSAME"); 
-            }
-
-            if (do_measure) 
-            {
-              JSROOT.draw(c,pave,"SAME"); 
-            }
-
-            ii++; 
+           c = addCanvas(pages['event'],"canvas_small",false) ;
           }
+          else
+          { 
+            c = P.canvases[ii+1]; 
+            JSROOT.cleanup(c); 
+          }
+
+          var g= JSROOT.CreateTGraph(N, X, data[ch]); 
+
+          for (var y = 0; y < N; y++) { g.fY[y]-=64; } 
+
+          g.fTitle = " Evt" + ev + ", CH " + ch; 
+          g.fLineColor = graph_colors[0]; 
+          g.fMarkerColor = graph_colors[0]; 
+          g.InvertBit(JSROOT.BIT(18)); 
+          g.fName="g_c"+ch; 
+
+          env = null; 
+
+          if (do_envelope && do_fft) 
+          {
+            env = JSROOT.CreateTGraph(0,[],[]); 
+            env.fLineColor = graph_colors[4]; 
+            env.fMarkerColor = graph_colors[4]; 
+            env.fTitle = "Envelope" 
+            env.fName = "envelope" 
+          }
+
+          P.graphs[2*ii]=g; 
+          P.graphs[2*ii+1]=env; 
+
+          if (do_measure)
+          {
+            var sum = 0; 
+            var sum2 = 0; 
+
+
+
+          }
+
+
+          if (do_fft) 
+          {
+            var fft =  spec(g,upsample, do_envelope ? env : null); 
+            if (do_avg && navg > 0) 
+            {
+               if (ii ==0) navg++; 
+
+               for (var ff = 0; ff < the_ffts[ii].fNpoints; ff++)
+               {
+                 the_ffts[ii].fY[ff] =  10 * Math.log10((Math.pow(10, the_ffts[ii].fY[ff]/10) * (navg-1) + Math.pow(10, fft.fY[ff]/10)) / (navg)); 
+               }
+
+            }
+            else
+            {
+              navg = do_avg ? 1 : 0; 
+              the_ffts[ii] =fft; 
+              the_ffts[ii].fLineColor = graph_colors[ii]; 
+              the_ffts[ii].fMarkerColor = graph_colors[ii]; 
+            }
+          }
+
+          var min=64; 
+          var max=-64; 
+          var sum2 = 0; 
+          var sum = 0;
+
+          if (autoscale || do_measure) 
+          {
+            for (var y = 0; y < g.fY.length; y++) 
+            {
+                if (g.fY[y] < min) min = g.fY[y]; 
+                if (g.fY[y] > max) max = g.fY[y]; 
+
+                if (do_measure)
+                {
+                  sum2 += g.fY[y]*g.fY[y]; 
+                  sum += g.fY[y]; 
+                }
+            }
+
+          }
+          var delta = max-min;
+          var pave = null; 
+
+          if (do_measure) 
+          {
+            var avg = sum / g.fNpoints; 
+            var rms = Math.sqrt(sum2 / g.fNpoints - avg * avg); 
+
+            pave =  JSROOT.Create("TPaveText"); 
+            pave.fTitle="measurements"; 
+            pave.fName="measure"; 
+            pave.fLineStyle = 0; 
+            pave.fTextSize = 12; 
+            pave.fX1NDC=0.1; 
+            pave.fX2NDC=0.9; 
+            pave.fY1NDC=0.1; 
+            pave.fY2NDC=0.3; 
+            pave.AddText("max: " + max.toFixed(3) + "  min: " + min.toFixed(3) + "  Vpp: " + delta.toFixed(3)); 
+            pave.AddText("avg: " + avg.toFixed(3) + "  rms: " + rms.toFixed(3)); 
+            pave.fLines.arr[0].fTextColor = 5; 
+            pave.fLines.arr[1].fTextColor = 5; 
+            P.legends[ii] = pave; 
+          }
+
+
+          if (!autoscale)
+          {
+            var range = parseInt(document.getElementById('evt_zoom').value); 
+            min= -range; 
+            max= range; 
+          }
+          else
+          {
+            max +=0.1*delta; 
+            min -=0.1*delta;
+          }
+
+          var histo = JSROOT.CreateHistogram("TH1I",100); 
+          histo.fName = g.fName + "_h";
+          histo.fTitle = g.fTitle;
+          histo.fXaxis.fXmin = 0;
+          histo.fXaxis.fXmax = N*2;;
+          histo.fYaxis.fXmin = min;
+          histo.fYaxis.fXmax = max;
+          histo.fMinimum = min;
+          histo.fMaximum = max;
+          histo.fXaxis.fTitle = "ns"; 
+          histo.fYaxis.fTitle = "adu"; 
+          setGraphHistStyle(histo); 
+          
+          g.fHistogram = histo; 
+
+          JSROOT.draw(c,g,"AL", function(painter)
+              {
+                var hist = painter.GetObject().fHistogram; 
+                painter.root_pad().fGridx = 1; 
+                painter.root_pad().fGridy = 1; 
+                var tpainter = painter.FindPainterFor(null,"title"); 
+                var pavetext = tpainter.GetObject(); 
+                pavetext.fTextColor = 31; 
+                tpainter.Redraw(); 
+                JSROOT.redraw(painter.divid, hist, ""); 
+                if (do_envelope & do_fft) 
+                {
+
+                }
+              }); 
+
+          if (do_envelope && do_fft) 
+          {
+            JSROOT.draw(c,env, "LSAME"); 
+          }
+
+          if (do_measure) 
+          {
+            JSROOT.draw(c,pave,"SAME"); 
+          }
+
+          ii++; 
         }
       }; 
 
@@ -916,7 +909,7 @@ function go(i)
           histo.fName = mg.fName + "_h";
           histo.fTitle = mg.fTitle;
           histo.fXaxis.fXmin = 0;
-          histo.fXaxis.fXmax = 0.75; 
+          histo.fXaxis.fXmax = 0.25; 
           histo.fYaxis.fXmin = -30;
           histo.fYaxis.fXmax = 50;
           histo.fMinimum = -30;
@@ -1008,7 +1001,7 @@ function evt()
   optAppend("<input type='button' value='&rarr;' onClick='next()' title='Next event'>"); 
   optAppend("<input type='button' value='&#x22A3;' onClick='go(100000000)' title='Last event'>"); 
   optAppend(" &Delta;t<sub>&#x25b6;</sub>:<input type='range' value='500' min='50' max='5000' id='play_speed' size=30' title='Play speed' >"); 
-  optAppend(" | Z: <input type='range' value='40' min='4' max='64' id='evt_zoom' title='Manual scale' size=30 onchange='go(-1)'> "); 
+  optAppend(" | Z: <input type='range' value='64' min='4' max='64' id='evt_zoom' title='Manual scale' size=30 onchange='go(-1)'> "); 
   optAppend(" auto<input type='checkbox' id='evt_autoscale' onchange='go(-1)'>"); 
   optAppend(" | spec?<input type='checkbox' id='evt_fft' checked title='Compute power spectrum (necessary for upsampling)' onchange='go(-1)'>");
   optAppend("avg?<input type='checkbox' id='avg_fft' title='Check to average fft's (uncheck to reset)' onchange='go(-1)'>");
@@ -1039,26 +1032,26 @@ function stat()
   global_scalers += ";;;xtitle:time;title:Global Scalers;ytitle:Hz;xtime:1;labels:Fast,Slow Gated,Slow"
 
   var beam_scalers = ""; 
-  for (var i = 0; i <15; i++)
+  for (var i = 0; i <20 ; i++)
   {
     if (i > 0) beam_scalers+="|||"; 
     beam_scalers+="status.readout_time+status.readout_time_ns*1e-9:status.beam_scalers[0]["+i+"]/10."; 
   }
   beam_scalers+=";;;xtitle:time;title:Beam Scalers;ytitle:Hz;xtime:1;labels:"; 
-  for (var i = 0; i <15; i++)
+  for (var i = 0; i <20; i++)
   {
     if (i > 0) beam_scalers+=","; 
     beam_scalers+="Beam "+i; 
   }
 
   var beam_thresholds = ""; 
-  for (var i = 0; i <15; i++)
+  for (var i = 0; i <20; i++)
   {
     if (i > 0) beam_thresholds+="|||"; 
     beam_thresholds+="status.readout_time+status.readout_time_ns*1e-9:status.trigger_thresholds["+i+"]"; 
   }
   beam_thresholds+=";;;xtitle:time;title:Trigger thresholds;ytitle:Power Sum(arb);xtime:1;labels:"; 
-  for (var i = 0; i <15; i++)
+  for (var i = 0; i <20; i++)
   {
     if (i > 0) beam_thresholds+=","; 
     beam_thresholds+="Beam "+i; 
@@ -1111,7 +1104,7 @@ function show(what)
 }
 
 
-function monutor_load()
+function monutau_load()
 {
 
 
