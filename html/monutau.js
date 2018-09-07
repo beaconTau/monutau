@@ -1065,7 +1065,7 @@ function evt()
   optAppend(" Up<input type='range' value='1' min='1' max ='16' id='upsample' onchange='go(-1)' title='upsample factor'>"); 
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
-  optAppend(" | filt?<input type='checkbox' id='filt' checked title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='0.20657,0.41314,0.20657'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='1,-0.36953,0.19582'>"); 
+  optAppend(" | filt?<input type='checkbox' id='filt' checked title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='0.0466,0.1863,0.2795,0.1863,0.0466'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='1,-0.782,0.6800,-0.1827,0.0301'>"); 
 
   var hash_params = hashParams('event'); 
   document.getElementById('evt_run').value = hash_params['run']===undefined ? runs[runs.length-1]: hash_params['run']; 
