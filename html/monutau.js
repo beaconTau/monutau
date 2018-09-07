@@ -911,9 +911,9 @@ function go(i)
           histo.fXaxis.fXmin = 0;
           histo.fXaxis.fXmax = 0.25; 
           histo.fYaxis.fXmin = -30;
-          histo.fYaxis.fXmax = 50;
+          histo.fYaxis.fXmax = 60;
           histo.fMinimum = -30;
-          histo.fMaximum = 50;
+          histo.fMaximum = 60;
           histo.fXaxis.fTitle = "f (GHz)"; 
           histo.fYaxis.fTitle = "db ish"; 
           setGraphHistStyle(histo); 
