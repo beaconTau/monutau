@@ -661,12 +661,17 @@ function go(i)
   window.location.hash = "event&run=" + run + "&entry=" + i; 
 
   var event_file = "rootdata/run" + run + "/event.root"; 
-  document.getElementById('load').innerHTML = '<a href="'+event_file+'">Event File</a>'
+  var load_div = document.getElementById('load'); 
+  load_div.innerHTML = '<a href="'+event_file+'">Event File</a>'; 
   var head_file = "rootdata/run" + run + "/header.root"; 
-  document.getElementById('load').innerHTML += ' | <a href="'+head_file+'">Head File</a>'
+  load_div.innerHTML += ' | <a href="'+head_file+'">Head File</a>'; 
   var status_file = "rootdata/run" + run + "/status.root"; 
-  document.getElementById('load').innerHTML += ' | <a href="'+status_file+'">Status File</a>'
+  load_div.innerHTML += ' | <a href="'+status_file+'">Status File</a>'; 
+  load_div.innerHTML += ' | <a id="dl_link" href="data:text/csv;charset=utf-8">Event CSV</a> '
 
+  var dl_link = document.getElementById("dl_link"); 
+
+  csvContent = "data:text/csv;charset=utf-8,"; 
   JSROOT.OpenFile(head_file, function(file) 
   {
     if (file == null) 
@@ -683,6 +688,8 @@ function go(i)
         document.getElementById('evt_entry').value = i; 
         pause(); 
       }
+
+      dl_link.setAttribute("download",run+"_"+i+".csv"); 
 
 
       var sel = new JSROOT.TSelector(); 
@@ -857,6 +864,8 @@ function go(i)
             }
           }
 
+          csvContent += g.fY.join(",") + "\r\n"
+
           var min=64; 
           var max=-64; 
           var sum2 = 0; 
@@ -992,6 +1001,7 @@ function go(i)
           histo.fYaxis.fTitle = "db ish"; 
           setGraphHistStyle(histo); 
           mg.fHistogram = histo; 
+          dl_link.setAttribute("href",encodeURI(csvContent)); 
  
           JSROOT.draw(c, mg, "ALP", function (painter) 
           {
