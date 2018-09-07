@@ -32,6 +32,41 @@ function hashParams(what)
   return pars; 
 }
 
+function iir_filter(g, b,a) 
+{
+
+  if (a == null || a.length == 0) a = [1]; 
+  if (b == null || b.length == 0) b = [1]; 
+  var yNew = new Float32Array(g.fNpoints); 
+
+
+  var inv = 1./a[0]; 
+  for (var i = 0; i < g.fNpoints; i++) 
+  {
+    var val = 0; 
+
+    for (var j = 0; j < Math.min(i+1,b.length); j++)
+    {
+      val += b[j] * g.fY[i-j]; 
+    }
+
+    for (var k = 1; k < Math.min(i+1,a.length); k++) 
+    {
+      val -= a[k] * yNew[i-k]; 
+    }
+
+    yNew[i] = val *inv; 
+
+  }
+
+//  console.log(yNew); 
+
+  for (var i = 0; i < g.fNpoints;i++) 
+  {
+    g.fY[i] = yNew[i]; 
+  }
+}
+
 
 function prettyPrintHeader(vars) 
 {
@@ -731,6 +766,27 @@ function go(i)
 
           for (var y = 0; y < N; y++) { g.fY[y]-=64; } 
 
+          if (document.getElementById('filt').checked) 
+          {
+            var As = document.getElementById('filt_A').value.split(','); 
+            var Bs = document.getElementById('filt_B').value.split(','); 
+
+            var a = []; 
+            var b = [];
+
+            for (var jj =0; jj < As.length; jj++) 
+            {
+              a[jj] = parseFloat(As[jj]) 
+            }
+            for (var jj =0; jj < Bs.length; jj++) 
+            {
+              b[jj] = parseFloat(Bs[jj]) 
+            }
+
+            iir_filter(g,b,a); 
+
+          }
+
           g.fTitle = " Evt" + ev + ", CH " + ch; 
           g.fLineColor = graph_colors[0]; 
           g.fMarkerColor = graph_colors[0]; 
@@ -1001,13 +1057,14 @@ function evt()
   optAppend("<input type='button' value='&rarr;' onClick='next()' title='Next event'>"); 
   optAppend("<input type='button' value='&#x22A3;' onClick='go(100000000)' title='Last event'>"); 
   optAppend(" &Delta;t<sub>&#x25b6;</sub>:<input type='range' value='500' min='50' max='5000' id='play_speed' size=30' title='Play speed' >"); 
-  optAppend(" | Z: <input type='range' value='64' min='4' max='64' id='evt_zoom' title='Manual scale' size=30 onchange='go(-1)'> "); 
+  optAppend(" | Z: <input type='range' value='64' min='4' max='84' id='evt_zoom' title='Manual scale' size=30 onchange='go(-1)'> "); 
   optAppend(" auto<input type='checkbox' id='evt_autoscale' onchange='go(-1)'>"); 
   optAppend(" | spec?<input type='checkbox' id='evt_fft' checked title='Compute power spectrum (necessary for upsampling)' onchange='go(-1)'>");
   optAppend("avg?<input type='checkbox' id='avg_fft' title='Check to average fft's (uncheck to reset)' onchange='go(-1)'>");
   optAppend(" Up<input type='range' value='1' min='1' max ='16' id='upsample' onchange='go(-1)' title='upsample factor'>"); 
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
+  optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='0.20657,0.41314,0.20657'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='1,-0.-0.36953,0.19582'>"); 
 
   var hash_params = hashParams('event'); 
   document.getElementById('evt_run').value = hash_params['run']===undefined ? runs[runs.length-1]: hash_params['run']; 
