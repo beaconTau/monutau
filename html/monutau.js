@@ -2,6 +2,21 @@
 var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35]; 
 
 
+function checkModTime(file, callback)
+{
+
+  var req = new XMLHttpRequest(); 
+  req.open("HEAD",file);
+  req.send(null); 
+  req.onload = function() 
+  {
+    if (req.status == 200) 
+    {
+      callback(req.getResponseHeader('Last-Modified'));
+    }
+    else callback(req.status); 
+  }
+}
 
 function updateRunlist() 
 {
@@ -631,6 +646,15 @@ function hk()
 
 the_ffts = [];
 
+
+last_run = -1; 
+last_hd_tree = null; 
+last_ev_tree = null; 
+last_hd_modified= 0; 
+last_ev_modified = 0; 
+
+
+
 function go(i) 
 {
   var P = pages['event']; 
@@ -672,76 +696,100 @@ function go(i)
   var dl_link = document.getElementById("dl_link"); 
 
   csvContent = "data:text/csv;charset=utf-8,"; 
-  JSROOT.OpenFile(head_file, function(file) 
+
+  if (run!=last_run) 
   {
-    if (file == null) 
-    { 
-      alert("Could not open filtered file!"); 
-      return; 
-    }
+    last_hd_tree = null;
+    last_ev_tree = null;
+    last_hd_modified = "";
+    last_ev_modified = "";
+    last_run = run; 
+  }
 
-    file.ReadObject("header", function(tree) 
+
+  //closure for processing header tree
+    head_proc = function(tree) 
     {
-      if (tree.fEntries <= i) 
-      {
-        i = tree.fEntries-1; 
-        document.getElementById('evt_entry').value = i; 
-        pause(); 
-      }
+        if (tree.fEntries <= i) 
+        {
+          i = tree.fEntries-1; 
+          document.getElementById('evt_entry').value = i; 
+          pause(); 
+        }
 
-      dl_link.setAttribute("download",run+"_"+i+".csv"); 
+        last_hd_tree = tree; 
+
+        dl_link.setAttribute("download",run+"_"+i+".csv"); 
 
 
-      var sel = new JSROOT.TSelector(); 
+        var sel = new JSROOT.TSelector(); 
 
-      var header_vars = ["event_number","trig_number","buffer_length","pretrigger_samples","readout_time", "readout_time_ns", "trig_time","raw_approx_trigger_time","raw_approx_trigger_time_nsecs","triggered_beams","beam_power","buffer_number","gate_flag","trigger_type","sync_problem"]; 
-      for (var b = 0; b < header_vars.length; b++) 
-      {
-        sel.AddBranch("header."+header_vars[b]);     
-      }
-      
-
-      sel.Begin = function ()
-      {
-      }
-
-      sel.Process = function ()
-      { 
-        var hdrc = document.getElementById(pages['event'].canvases[0]); 
-
-        /*
-        var str = ""; 
-        //todo, format nicer 
-        
-        str += "<table>"; 
+        var header_vars = ["event_number","trig_number","buffer_length","pretrigger_samples","readout_time", "readout_time_ns", "trig_time","raw_approx_trigger_time","raw_approx_trigger_time_nsecs","triggered_beams","beam_power","buffer_number","gate_flag","trigger_type","sync_problem"]; 
         for (var b = 0; b < header_vars.length; b++) 
         {
-          if ( b % 3 == 0) str += "<tr>"; 
-          str += "<td>"+ header_vars[b] + ": </td> <td> " + this.tgtobj["header."+header_vars[b]] + "</td>"; 
-          if ( b % 3 == 2) str += "</tr>"; 
+          sel.AddBranch("header."+header_vars[b]);     
         }
-        str += "</table>"; 
-        */
-        hdrc.innerHTML = prettyPrintHeader(this.tgtobj);  
-      }; 
+        
 
-      sel.Terminate = function(res) { ; } 
+        sel.Begin = function ()
+        {
+        }
 
-      var args = { numentries: 1, firstentry : i} ;
-      tree.Process(sel, args); 
-    }); 
-  }); 
+        sel.Process = function ()
+        { 
+          var hdrc = document.getElementById(pages['event'].canvases[0]); 
 
-  JSROOT.OpenFile(event_file, function(file)  
-  {
-    if (file == null) 
-    { 
-      alert("Could not open event file!"); 
-      return; 
-    }
+          /*
+          var str = ""; 
+          //todo, format nicer 
+          
+          str += "<table>"; 
+          for (var b = 0; b < header_vars.length; b++) 
+          {
+            if ( b % 3 == 0) str += "<tr>"; 
+            str += "<td>"+ header_vars[b] + ": </td> <td> " + this.tgtobj["header."+header_vars[b]] + "</td>"; 
+            if ( b % 3 == 2) str += "</tr>"; 
+          }
+          str += "</table>"; 
+          */
+          hdrc.innerHTML = prettyPrintHeader(this.tgtobj);  
+        }; 
 
-    file.ReadObject("event", function(tree) 
+        sel.Terminate = function(res) { ; } 
+
+        var args = { numentries: 1, firstentry : i} ;
+        tree.Process(sel, args); 
+      }
+
+    checkModTime(head_file, function(time)
+        {
+          if (last_hd_tree && time == last_hd_modified) 
+          {
+            head_proc(last_hd_tree); 
+          }
+          else
+          {
+            last_hd_modified=time; 
+            JSROOT.OpenFile(head_file, function(file)  
+            {
+              if (file == null) 
+              { 
+                alert("Could not open event file!"); 
+                return; 
+              }
+
+              file.ReadObject("header", head_proc); 
+
+            }); 
+          }
+
+        });
+
+
+
+    ev_proc = function(tree) 
     {
+      last_ev_tree = tree;
       if (tree.fEntries <= i) 
       {
         i = tree.fEntries-1; 
@@ -1030,9 +1078,31 @@ function go(i)
 
       var args = { numentries: 1, firstentry : i} ;
       tree.Process(sel, args); 
-    }); 
+    }; 
 
-  }); 
+  checkModTime(event_file, function(time)
+        {
+          if (last_ev_tree && time == last_ev_modified) 
+          {
+            ev_proc(last_ev_tree); 
+          }
+          else
+          {
+            last_ev_modified=time; 
+            JSROOT.OpenFile(event_file, function(file)  
+            {
+              if (file == null) 
+              { 
+                alert("Could not open event file!"); 
+                return; 
+              }
+
+              file.ReadObject("event", ev_proc); 
+
+            }); 
+          }
+
+        });
 
 
 
