@@ -1080,8 +1080,8 @@ function go(i)
       tree.Process(sel, args); 
     }; 
 
-  checkModTime(event_file, function(time)
-        {
+    checkModTime(event_file, function(time)
+    {
           if (last_ev_tree && time == last_ev_modified) 
           {
             ev_proc(last_ev_tree); 
@@ -1102,7 +1102,7 @@ function go(i)
             }); 
           }
 
-        });
+    });
 
 
 
