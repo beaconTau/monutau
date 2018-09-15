@@ -10,8 +10,8 @@
 #Slurm stuff  (ignore if not using slurm) 
 
 #SBATCH --job-name=monutau 
-#SBATCH --output=monutau 
-#SBATCH --error=monutau
+#SBATCH --output=monutau.out
+#SBATCH --error=monutau.err
 #SBATCH --time=1:00:00
 #SBATCH --partition=sandyb
 #SBATCH --account=pi-avieregg
