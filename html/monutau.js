@@ -65,40 +65,7 @@ function hashParams(what)
   return pars; 
 }
 
-function iir_filter(g, b,a) 
-{
 
-  if (a == null || a.length == 0) a = [1]; 
-  if (b == null || b.length == 0) b = [1]; 
-  var yNew = new Float32Array(g.fNpoints); 
-
-
-  var inv = 1./a[0]; 
-  for (var i = 0; i < g.fNpoints; i++) 
-  {
-    var val = 0; 
-
-    for (var j = 0; j < Math.min(i+1,b.length); j++)
-    {
-      val += b[j] * g.fY[i-j]; 
-    }
-
-    for (var k = 1; k < Math.min(i+1,a.length); k++) 
-    {
-      val -= a[k] * yNew[i-k]; 
-    }
-
-    yNew[i] = val *inv; 
-
-  }
-
-//  console.log(yNew); 
-
-  for (var i = 0; i < g.fNpoints;i++) 
-  {
-    g.fY[i] = yNew[i]; 
-  }
-}
 
 
 function prettyPrintHeader(vars) 
@@ -142,83 +109,23 @@ function arrNonZero(arr)
   return false; 
 }
 
-var ffts = {}; 
 var navg = 0; 
 
 
-function getFFT(size) 
-{
-  if (ffts[size] === undefined)
-  {
-    ffts[size] = new FFTR(size); 
-  }
-
-  return ffts[size]; 
-}
 
 /** Gets the power spectrum of a TGraph, returning as a TGraph. Optionally will upsample in fourier space */ 
 function spec(g, upsample=1, envelope = null) 
 {
-  var N = g.fX.length;
-  var fft = getFFT(N); 
-  var Y = fft.forward(g.fY); 
-  var dt = g.fX[1] - g.fX[0]; 
-  var df = 1./(N * dt); 
-  var t0 = g.fX[0]; 
-  var f = []; 
-  var P = []; 
-  for (var i = 0; i < N/2+1; i++)
-  {
-    f.push(i*df); 
-    var p = (Y[2*i]*Y[2*i] + Y[2*i+1]*Y[2*i+1]) / N; 
-    if (i > 0 || i < N/2) p*=2; 
-    P.push(10*Math.log10(p)); 
-  }
 
-  var G = JSROOT.CreateTGraph(N/2+1, f,P); 
-  G.fName = g.fName + "_power"; 
-  G.fTitle = g.fTitle.substring(g.fTitle.indexOf(',')+1); 
-
-  upsample = Math.round(upsample); 
-
-  var Yp = null;
-
-
-  if (upsample > 1) 
-  {
-    var newY = new Float32Array( 2*((upsample * N)/2 + 1)); 
-    for (var i = 0; i < 2*(N/2 + 1); i++) newY[i] = Y[i]/N; 
-    var fftU = getFFT(upsample * N); 
-    g.fNpoints = upsample*N; 
-    g.fY = fftU.inverse(newY); 
-    for (var i = 0; i < N*upsample; i++) 
-    {
-      g.fX[i] = dt/upsample *i + t0; 
-    }
-    delete newY; 
-  }
+  var Y = RF.upsample(g,upsample); 
+  var G = RF.makePowerSpectrum(g, Y); 
 
   if (envelope != null) 
   {
-    var Yp = new Float32Array( 2*((upsample*N)/2+1)); 
-    for (var i = 1; i < N/2; i++)
-    {
-      Yp[2*i] = -Y[2*i+1] / N; 
-      Yp[2*i+1] = Y[2*i] / N; 
-    }
+    RF.hilbertEnvelope(g, Y, null, envelope);
 
-    var fftH = getFFT(upsample * N); 
-    var yp = fftH.inverse(Yp); 
-    envelope.fNpoints = N*upsample;; 
-
-    for (var i = 0; i < N*upsample; i++)
-    {
-      envelope.fX[i] = dt/upsample * i + t0; 
-      envelope.fY[i] = Math.sqrt( g.fY[i] * g.fY[i] + yp[i] * yp[i]); 
-    }
   }
 
-  G.InvertBit(JSROOT.BIT(18)); 
   return G; 
 }
 
@@ -856,7 +763,7 @@ function go(i)
               b[jj] = parseFloat(Bs[jj]) 
             }
 
-            iir_filter(g,b,a); 
+            RF.IIRFilter(g,b,a); 
 
           }
 

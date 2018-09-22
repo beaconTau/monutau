@@ -132,7 +132,7 @@ $(HTML_DIR)/jsroot: jsroot/scripts jsroot/style
 	cp -r $^ $@
 
 
-deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js  $(HTML_DIR)/runlist.js $(HTML_DIR)/runlist.json  $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png $(HTML_DIR)/KissFFT.js $(HTML_DIR)/FFT.js | $(HTML_DIR) 
+deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js $(HTML_DIR)/rf.js  $(HTML_DIR)/runlist.js $(HTML_DIR)/runlist.json  $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png $(HTML_DIR)/KissFFT.js $(HTML_DIR)/FFT.js | $(HTML_DIR) 
 	touch $@ 
 
 
