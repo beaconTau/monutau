@@ -123,7 +123,6 @@ function spec(g, upsample=1, envelope = null)
   if (envelope != null) 
   {
     RF.hilbertEnvelope(g, Y, null, envelope);
-
   }
 
   return G; 
@@ -159,6 +158,7 @@ function Page(name)
   P.page_name = name; 
   P.canvases = []; 
   P.graphs = [];  
+  P.envs = [];  
   P.leg_graphs = [];  
   P.multigraphs = []; 
   P.legends = []; 
@@ -183,6 +183,7 @@ function clearCanvases(p)
   }
 
   p.graphs = []; 
+  p.envs = []; 
   p.leg_graphs = []; 
   p.wants = [];  
   p.multigraphs = []; 
@@ -210,6 +211,8 @@ function addCanvas(P,cl='canvas',show_name = true)
   P.canvases.push(name); 
   return name; 
 }
+
+
 
 function startLoading(str = "Loading...") 
 {
@@ -553,7 +556,8 @@ function hk()
 
 the_ffts = [];
 
-
+ngraphs = 0; 
+max_graphs = 8; 
 last_run = -1; 
 last_hd_tree = null; 
 last_ev_tree = null; 
@@ -561,17 +565,37 @@ last_hd_modified= 0;
 last_ev_modified = 0; 
 
 
+hd_canvas = null;
+graph_canvases = []; 
+fft_canvas = null;
+
+//interferometry canvases 
+int_canvas_h = null ; 
+int_canvas_v = null;
+
+
+boresight = [1,0,0]; 
+max_phi = 180; 
+max_theta = 90.0; 
+
+antennas = [
+  RF.Antenna( 0,0,0, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -6.039,-1.618,2.275, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -1.272,-10.364,1.282, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( 3.411,-11.897,-0.432, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+ ]; 
+
+mapper = RF.AngleMapper(antennas); 
+
+h_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
+v_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
+
+first_int = true; 
 
 function go(i) 
 {
   var P = pages['event']; 
    
-  if (P.canvases.length < 1) 
-  {
-    addCanvas(P,"canvas_short",false); 
-  }
-
-
   if (i < 0)
   {
     i = parseInt(document.getElementById('evt_entry').value); 
@@ -604,6 +628,7 @@ function go(i)
 
   csvContent = "data:text/csv;charset=utf-8,"; 
 
+  ngraphs =0; 
   if (run!=last_run) 
   {
     last_hd_tree = null;
@@ -612,6 +637,60 @@ function go(i)
     last_ev_modified = "";
     last_run = run; 
   }
+
+
+  /* Set up the canvases */ 
+
+
+  if (P.canvases.length < 1) 
+  {
+    hd_canvas = addCanvas(P,"canvas_short",false); 
+  }
+
+  hd_canvas = P.canvases[0]; 
+
+
+  for (var ii = 0; ii < max_graphs; ii++) 
+  {
+    if (P.canvases.length < ii+2) 
+    {
+      addCanvas(P, "canvas_small",false); 
+    }
+    graph_canvases[ii] = P.canvases[ii+1]; 
+  }
+
+
+
+  var int_h_index = graph_canvases.length+1;
+  var int_v_index = graph_canvases.length+2;
+
+  if (P.canvases.length < int_h_index+1) 
+  {
+    addCanvas(P,"canvas_small",false); 
+    first_int = true;
+  }
+
+  if (P.canvases.length < int_v_index+1) 
+  {
+    addCanvas(P,"canvas_small",false); 
+  }
+
+
+  int_canvas_h = P.canvases[int_h_index]; 
+  int_canvas_v = P.canvases[int_v_index]; 
+
+
+  var fft_index = graph_canvases.length +3;
+
+  if (P.canvases.length < fft_index+1) 
+  {
+    addCanvas(P,"canvas_med",false); 
+  }
+
+  fft_canvas = P.canvases[fft_index]; 
+
+
+  // set up the interferometer
 
 
   //closure for processing header tree
@@ -644,7 +723,7 @@ function go(i)
 
         sel.Process = function ()
         { 
-          var hdrc = document.getElementById(pages['event'].canvases[0]); 
+          var hdrc = document.getElementById(hd_canvas); 
 
           /*
           var str = ""; 
@@ -730,17 +809,12 @@ function go(i)
         for (var ch = 0; ch < data.length; ch++)
         {
           if (!arrNonZero(data[ch])) continue; 
-          var c =""; 
 
-          if (P.canvases.length < ii+2) 
-          {
-           c = addCanvas(pages['event'],"canvas_small",false) ;
-          }
-          else
-          { 
-            c = P.canvases[ii+1]; 
-            JSROOT.cleanup(c); 
-          }
+          var c = graph_canvases[ii]; 
+
+          if (P.graphs.length > ii) JSROOT.cleanup(c); //not our first rodeo 
+
+          ngraphs++; 
 
           var g= JSROOT.CreateTGraph(N, X, data[ch]); 
 
@@ -784,18 +858,15 @@ function go(i)
             env.fName = "envelope" 
           }
 
-          P.graphs[2*ii]=g; 
-          P.graphs[2*ii+1]=env; 
+          P.graphs[ch]=g; 
+          P.envs[ch]=env; 
 
           if (do_measure)
           {
             var sum = 0; 
             var sum2 = 0; 
 
-
-
           }
-
 
           if (do_fft) 
           {
@@ -821,8 +892,8 @@ function go(i)
 
           csvContent += g.fY.join(",") + "\r\n"
 
-          var min=64; 
-          var max=-64; 
+          var min=9999; 
+          var max=-9999; 
           var sum2 = 0; 
           var sum = 0;
 
@@ -901,12 +972,9 @@ function go(i)
                 var tpainter = painter.FindPainterFor(null,"title"); 
                 var pavetext = tpainter.GetObject(); 
                 pavetext.fTextColor = 31; 
+
                 tpainter.Redraw(); 
                 JSROOT.redraw(painter.divid, hist, ""); 
-                if (do_envelope & do_fft) 
-                {
-
-                }
               }); 
 
           if (do_envelope && do_fft) 
@@ -925,18 +993,68 @@ function go(i)
 
       sel.Terminate = function(res) 
       { 
-        if (document.getElementById('evt_fft').checked) 
+        /* hide any extra channels */ 
+
+        for (var ii = ngraphs; ngraphs < graph_canvases.length; ii++)
         {
-          if (P.canvases.length <= the_ffts.length+1) 
+            document.getElementById(graph_canvases[ii]).style.display = 'none'; 
+        }
+
+        if (document.getElementById('map').checked) //interferometry
+        {
+          var h_graphs = [ P.graphs[0], P.graphs[2], P.graphs[4], P.graphs[6]];
+          var v_graphs = [ P.graphs[1], P.graphs[4], P.graphs[5], P.graphs[7]];
+
+          h_map.compute(h_graphs);
+          v_map.compute(v_graphs);
+
+          h_map.setTitle("HPol (BETA)","azimuth (deg)","elevation (deg)"); 
+          v_map.setTitle("VPol (BETA)","azimuth (deg)","elevation (deg)"); 
+
+
+          if (first_int) 
           {
-            c = addCanvas(P,'canvas_med',false); 
+            first_int = false
           }
           else
           {
-            c = P.canvases[the_ffts.length+1]; 
-            document.getElementById(c).style.display = 'block'; 
-            JSROOT.cleanup(c); 
+            JSROOT.cleanup(int_canvas_h);
+            JSROOT.cleanup(int_canvas_v);
           }
+
+          setGraphHistStyle(h_map.hist); 
+          setGraphHistStyle(v_map.hist); 
+
+          var int_fn = function(painter) 
+          {
+                var hist = painter.GetObject().fHistogram; 
+                painter.root_pad().fGridx = 1; 
+                painter.root_pad().fGridy = 1; 
+                var tpainter = painter.FindPainterFor(null,"title"); 
+                var pavetext = tpainter.GetObject(); 
+                var pal = painter.FindFunction("TPaletteAxis"); 
+
+                pal.fAxis.fLabelColor = 31; 
+                painter.Redraw(); 
+                pavetext.fTextColor = 31; 
+                tpainter.Redraw(); 
+                JSROOT.redraw(painter.divid, hist, ""); 
+ 
+          }
+
+         // console.log(h_map.hist); 
+          JSROOT.draw(int_canvas_h,h_map.hist,  "colz",int_fn); 
+          JSROOT.draw(int_canvas_v,v_map.hist,  "colz",int_fn); 
+        }
+
+
+        if (document.getElementById('evt_fft').checked) 
+        {
+
+          var c = fft_canvas;
+          document.getElementById(c).style.display = 'block'; 
+          if (P.multigraphs.length) JSROOT.cleanup(c); 
+
 
           var mg = JSROOT.CreateTMultiGraph.apply(0, the_ffts); 
           P.multigraphs[0] = mg; 
@@ -975,11 +1093,7 @@ function go(i)
          }
         else
         {
-
-          if (P.canvases.length > the_ffts.length+1)
-          {
-            document.getElementById(P.canvases[the_ffts.length+1]).style.display = 'none'; 
-          }
+          document.getElementById(fft_canvas).style.display = 'none'; 
         }
       }
 
@@ -1071,6 +1185,7 @@ function evt()
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
+  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'>"); 
 
   var hash_params = hashParams('event'); 
   document.getElementById('evt_run').value = hash_params['run']===undefined ? runs[runs.length-1]: hash_params['run']; 
@@ -1177,6 +1292,10 @@ function monutau_load()
   JSROOT.gStyle.fFrameLineColor=11; 
   JSROOT.gStyle.fTitleColor=3; 
   JSROOT.gStyle.fGridColor=11; 
+  JSROOT.gStyle.fGridColor=11; 
+  JSROOT.gStyle.Palette = 87; 
+  JSROOT.gStyle.AutoStat=false; 
+  JSROOT.gStyle.fNumberContours=255; 
 
   pages['hk'] = Page('hk'); 
   pages['status'] = Page('status'); 
