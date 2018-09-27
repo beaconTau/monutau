@@ -29,7 +29,7 @@ clean:
 ### Copy over new files 
 sync: | $(RAW_DIR) 
 ifdef REMOTE_HOST
-	rsync -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >> $@
+	rsync --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >> $@
 else
 	echo "No need to sync" 
 endif
