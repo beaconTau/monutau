@@ -1002,11 +1002,34 @@ function go(i)
 
         if (document.getElementById('map').checked) //interferometry
         {
-          var h_graphs = [ P.graphs[0], P.graphs[2], P.graphs[4], P.graphs[6]];
-          var v_graphs = [ P.graphs[1], P.graphs[4], P.graphs[5], P.graphs[7]];
+          var mask = parseInt(document.getElementById('map_mask').value); 
+          //var cutoff = parseFloat(document.getElementById('map_cutoff').value); 
+         // if (isNaN(cutoff)) cutoff = 0;
+          //h_map.cutoff = cutoff; 
+//          v_map.cutoff = cutoff; 
+          var reverse = document.getElementById('map_reverse_sign').checked; 
+          var h_graphs = new Array(4) 
+          var v_graphs = new Array(4) 
+ //         console.log(mask); 
 
-          h_map.compute(h_graphs);
-          v_map.compute(v_graphs);
+          for (var ii = 0; ii < 4; ii++)
+          {
+//            console.log(mask & (1 << ii)); 
+            if (mask & (1<<ii))  
+            {
+              h_graphs[ii] = P.graphs[2*ii] ;
+              v_graphs[ii] = P.graphs[2*ii+1]; 
+            }
+            else
+            {
+              h_graphs[ii] = null;
+              v_graphs[ii] = null;
+            }
+
+          }
+
+          h_map.compute(h_graphs,reverse);
+          v_map.compute(v_graphs,reverse);
 
           h_map.setTitle("HPol (BETA)","azimuth (deg)","elevation (deg)"); 
           v_map.setTitle("VPol (BETA)","azimuth (deg)","elevation (deg)"); 
@@ -1045,6 +1068,16 @@ function go(i)
          // console.log(h_map.hist); 
           JSROOT.draw(int_canvas_h,h_map.hist,  "colz",int_fn); 
           JSROOT.draw(int_canvas_v,v_map.hist,  "colz",int_fn); 
+        }
+        else
+        {
+          if (!first_int); 
+          {
+            JSROOT.cleanup(int_canvas_h);
+            JSROOT.cleanup(int_canvas_v);
+          }
+
+
         }
 
 
@@ -1168,24 +1201,25 @@ function start()
 function evt() 
 {
   optAppend("Run: <input id='evt_run' size=5> "); 
-  optAppend("Entry: <input id='evt_entry' value='0' size=10> "); 
-  optAppend("<input type='button' value='Go' onClick='go(-1)'>"); 
+  optAppend("Entry: <input id='evt_entry' value='0' size=10 onchange='go(-1)'> "); 
   optAppend(" | <input type='button' value='&#x22A2;' onClick='go(0)' title='Go to first event'>"); 
   optAppend("<input type='button' value='&larr;' onClick='previous()' title='Previous event'>"); 
   optAppend("<input type='button' id='pause_button' value='&#x25a0;' onClick='pause()' disabled title='Pause playing'>"); 
   optAppend("<input type='button' id='play_button' value='&#x25b6;' onClick='start()' title='Play through events'>"); 
   optAppend("<input type='button' value='&rarr;' onClick='next()' title='Next event'>"); 
   optAppend("<input type='button' value='&#x22A3;' onClick='go(100000000)' title='Last event'>"); 
-  optAppend(" &Delta;t<sub>&#x25b6;</sub>:<input type='range' value='500' min='50' max='5000' id='play_speed' size=30' title='Play speed' >"); 
-  optAppend(" | Z: <input type='range' value='64' min='4' max='84' id='evt_zoom' title='Manual scale' size=30 onchange='go(-1)'> "); 
+  optAppend(" &Delta;t<sub>&#x25b6;</sub>:<input type='range' class='slider'  value='500' min='50' max='5000' id='play_speed'  title='Play speed' >"); 
+  optAppend(" | Z: <input type='range' value='64' min='4' max='84' id='evt_zoom' class='slider' title='Manual scale'  onchange='go(-1)'> "); 
   optAppend(" auto<input type='checkbox' id='evt_autoscale' onchange='go(-1)'>"); 
   optAppend(" | spec?<input type='checkbox' id='evt_fft' checked title='Compute power spectrum (necessary for upsampling)' onchange='go(-1)'>");
   optAppend("avg?<input type='checkbox' id='avg_fft' title='Check to average fft's (uncheck to reset)' onchange='go(-1)'>");
-  optAppend(" Up<input type='range' value='1' min='1' max ='16' id='upsample' onchange='go(-1)' title='upsample factor'>"); 
+  optAppend(" Up<input type='range' value='1' min='1' max ='8' class='slider'   id='upsample' onchange='go(-1)' title='upsample factor'>"); 
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
-  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'>"); 
+  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> -dt? <input type='checkbox' id='map_reverse_sign' title='this controls the sign of dt' onchange='go(-1)'>");
+//  optAppend(" cutoff: <input id='map_cutoff' title='frequency cutoff for cross-correlations' size=5 value='0'>"); 
+
 
   var hash_params = hashParams('event'); 
   document.getElementById('evt_run').value = hash_params['run']===undefined ? runs[runs.length-1]: hash_params['run']; 
