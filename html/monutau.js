@@ -140,10 +140,10 @@ function setGraphHistStyle(histo)
     histo.fYaxis.fTitleSize = 0.05; 
     histo.fXaxis.fLabelSize = 0.045; 
     histo.fYaxis.fLabelSize = 0.045; 
-    histo.fXaxis.fTitleColor = 30;
-    histo.fYaxis.fTitleColor = 30; 
-    histo.fXaxis.fLabelColor = 30;
-    histo.fYaxis.fLabelColor = 30; 
+//    histo.fXaxis.fTitleColor = 30;
+//    histo.fYaxis.fTitleColor = 30; 
+//    histo.fXaxis.fLabelColor = 30;
+//    histo.fYaxis.fLabelColor = 30; 
     histo.fYaxis.fAxisColor = 11; 
     histo.fXaxis.fAxisColor = 11; 
     histo.fBits = histo.fBits | JSROOT.TH1StatusBits.kNoStats;
@@ -971,7 +971,7 @@ function go(i)
                 painter.root_pad().fGridy = 1; 
                 var tpainter = painter.FindPainterFor(null,"title"); 
                 var pavetext = tpainter.GetObject(); 
-                pavetext.fTextColor = 31; 
+//                pavetext.fTextColor = 31; 
 
                 tpainter.Redraw(); 
                 JSROOT.redraw(painter.divid, hist, ""); 
@@ -1034,9 +1034,9 @@ function go(i)
                 var pavetext = tpainter.GetObject(); 
                 var pal = painter.FindFunction("TPaletteAxis"); 
 
-                pal.fAxis.fLabelColor = 31; 
+//                pal.fAxis.fLabelColor = 31; 
                 painter.Redraw(); 
-                pavetext.fTextColor = 31; 
+//                pavetext.fTextColor = 31; 
                 tpainter.Redraw(); 
                 JSROOT.redraw(painter.divid, hist, ""); 
  
@@ -1083,7 +1083,7 @@ function go(i)
                 var leg = makeLegend(0.6,1,0.75,1,the_ffts); 
                 var tpainter = painter.FindPainterFor(null,"title"); 
                 var pavetext = tpainter.GetObject(); 
-                pavetext.fTextColor = 31; 
+//                pavetext.fTextColor = 31; 
                 tpainter.Redraw(); 
 
    
