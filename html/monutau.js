@@ -438,7 +438,7 @@ function statusTreeDraw()
     files_to_load.push("rootdata/run"+r+"/status"+decimated+".root"+suffix); 
   }
 
-  console.log(files_to_load); 
+//  console.log(files_to_load); 
 
   for (var i = 0; i < files_to_load.length; i++)
   {
@@ -499,7 +499,7 @@ function hkTreeDraw()
     if (day < 10) day = "0" + day; 
     files_to_load.push("rootdata/hk/" + d.getUTCFullYear()  + "/" + mon + "/" + day+ ".root"+suffix); 
   }
-  console.log(files_to_load); 
+//  console.log(files_to_load); 
 
   for (var i = 0; i < files_to_load.length; i++)
   {
