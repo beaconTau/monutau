@@ -352,13 +352,17 @@ function doDraw(page, ts, what,cut)
       {
 
         args = { expr: draws[j], cut: cut, graph: true, drawopt: [i,j,it]}; 
-        console.log(args); 
         real_ts[it].Draw(args, function(g,indices,ignore)
         {
           var ii = indices[0]; 
           var jj = indices[1]; 
           var tt = indices[2]; 
 
+          if (g.fNpoints == 0) 
+          {
+            page.wants[ii]--; 
+            return;
+          }
           g.InvertBit(JSROOT.BIT(18)); 
           g.fTitle = page.labels[ii][jj]; 
           g.fName = page.labels[ii][jj]; 
