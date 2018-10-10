@@ -1204,7 +1204,7 @@ function start()
 
 function evt() 
 {
-  optAppend("Run: <input id='evt_run' size=5> "); 
+  optAppend("Run: <input id='evt_run' size=5 onchange='go(-1)'> "); 
   optAppend("Entry: <input id='evt_entry' value='0' size=10 onchange='go(-1)'> "); 
   optAppend(" | <input type='button' value='&#x22A2;' onClick='go(0)' title='Go to first event'>"); 
   optAppend("<input type='button' value='&larr;' onClick='previous()' title='Previous event'>"); 
