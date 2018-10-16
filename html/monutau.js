@@ -543,7 +543,10 @@ function hk()
   optAppend("Cut: <input id='hk_cut' size=20 value='Entry$%10==0'>");
   optAppend(" | Full xfers(<a href='javascript:transferHelp()'>?</a>) : <input type=checkbox id='hk_full_transfers' checked> <br>" ); 
   optAppend("Plot(<a onClick='return plotHelp()'>?</a>):<br>");
-  optAppend("<textarea id='plot_hk' cols=160 rows=5>hk.unixTime:hk.temp_board|||hk.unixTime:hk.temp_adc;;;xtitle:time;title:Temperatures;ytitle:C;xtime:1;labels:board,adc\nhk.unixTime:hk.frontend_current|||hk.unixTime:hk.adc_current|||hk.unixTime:hk.aux_current|||hk.unixTime:hk.ant_current;;;xtitle:time;ytitle:mA;labels:frontend,adc,aux,ant;xtime:1;title:currents\nhk.unixTime:hk.disk_space_kB;;;title:disk;xtitle:time;xtime:1;labels:disk;ytitle:kB</textarea>");
+  optAppend("<textarea id='plot_hk' cols=160 rows=5>hk.unixTime:hk.temp_board|||hk.unixTime:hk.temp_adc;;;xtitle:time;title:Temperatures;ytitle:C;xtime:1;labels:board,adc\n"
+            +"hk.unixTime:hk.frontend_current|||hk.unixTime:hk.adc_current|||hk.unixTime:hk.aux_current|||hk.unixTime:hk.ant_current;;;xtitle:time;ytitle:mA;labels:frontend,adc,aux,ant;xtime:1;title:currents\n"
+            +"hk.unixTime:hk.inv_batt_V|||hk.unixTime:hk.cc_batt_V|||hk.unixTime:hk.pv_V|||hk.unixTime:hk.cc_daily_Ah;;;title:Power;xtitle:time;ytitle:V or Ah;labels:Inverter Batt. Voltage,CC Batt. Voltage, PV Voltage,Daily Charge;xtime:1\n"
+            +"hk.unixTime:hk.disk_space_kB;;;title:disk;xtitle:time;xtime:1;labels:disk;ytitle:kB</textarea>");
   optAppend("<br><input type='button' onClick='return hkTreeDraw()' value='Draw'>"); 
   optAppend("<a href='all_hk.root'>  (Download All HK ROOT File)</a>"); 
   
