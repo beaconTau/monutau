@@ -1058,8 +1058,6 @@ function go(i)
           var int_fn = function(painter) 
           {
                 var hist = painter.GetObject().fHistogram; 
-                painter.root_pad().fGridx = 1; 
-                painter.root_pad().fGridy = 1; 
                 var tpainter = painter.FindPainterFor(null,"title"); 
                 var pavetext = tpainter.GetObject(); 
                 var pal = painter.FindFunction("TPaletteAxis"); 
