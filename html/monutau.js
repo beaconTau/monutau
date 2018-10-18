@@ -1,6 +1,7 @@
 
 var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35]; 
 
+var header_vars = ["event_number","trig_number","buffer_length","pretrigger_samples","readout_time", "readout_time_ns", "trig_time","raw_approx_trigger_time","raw_approx_trigger_time_nsecs","triggered_beams","beam_power","buffer_number","gate_flag","trigger_type","sync_problem"]; 
 
 function checkModTime(file, callback)
 {
@@ -175,7 +176,7 @@ function Page(name)
 }
 
 // persist some things... 
-function clearCanvases(p)
+function clearCanvases(p, nuke=false)
 {
   for (var i = 0; i < p.canvases.length; i++) 
   {
@@ -196,9 +197,12 @@ function clearCanvases(p)
   p.legends = []; 
   p.titles = []; 
 
-//  p.canvases =[]; 
-//  var c = document.getElementById(p.main_canvas); 
-//  c.innerHTML = ""; 
+  if (nuke) 
+  {
+    p.canvases =[]; 
+    var c = document.getElementById(p.main_canvas); 
+    c.innerHTML = ""; 
+  }
 }
 
 function addCanvas(P,cl='canvas',show_name = true) 
@@ -717,7 +721,6 @@ function go(i)
 
         var sel = new JSROOT.TSelector(); 
 
-        var header_vars = ["event_number","trig_number","buffer_length","pretrigger_samples","readout_time", "readout_time_ns", "trig_time","raw_approx_trigger_time","raw_approx_trigger_time_nsecs","triggered_beams","beam_power","buffer_number","gate_flag","trigger_type","sync_problem"]; 
         for (var b = 0; b < header_vars.length; b++) 
         {
           sel.AddBranch("header."+header_vars[b]);     
@@ -1232,6 +1235,182 @@ function evt()
   go(-1); 
 }
 
+function spectrogram() 
+{
+
+  optAppend("<b>WARNING: </b> Generating spectrograms essentially requires downloading all the data. Don't try this on a slow connection or metered data plan<br>"); 
+  optAppend("Run: <input id='spec_run' size=5 value=''> | "); 
+
+  var hash_params = hashParams('spectrogram'); 
+
+  optAppend("Cut: <input id='spec_cut' size=40 value='header.trigger_type==1' > | "); 
+  optAppend("Min: <input alt='minimum entry' id='spec_min' size=5' value='0' >"); 
+  optAppend(" Max: <input alt='maximum entry' id='spec_max' size=5' value='-1' > | "); 
+  optAppend("Nsecs: <input alt='width of time bin entry' id='spec_nsec' size=5' value='10' > | "); 
+  optAppend("ChMask : <input alt='channel mask, or 0 for all' id='spec_mask' size=10' value='255' > | "); 
+
+
+  optAppend("<input type='button' value='compute' onClick='makeSpectrogram()'>"); 
+
+  if (hash_params['run'] == undefined) 
+  {
+    document.getElementById("spec_run").value = runs[runs.length-1] 
+  }
+  else
+  {
+    document.getElementById("spec_run").value = hash_params['run']; 
+  }
+
+}
+
+function makeSpectrogram()
+{
+  run = parseInt(document.getElementById('spec_run').value); 
+  window.location.hash = "spectrogram&run=" + run ; 
+  clearCanvases(pages['spectrogram'], true); 
+  startLoading("[figuring out what we need]") ;
+
+
+  if (runs.indexOf(run) < 0) 
+  {
+    alert("No run " + run); 
+    return; 
+  }
+
+  var hfile = "rootdata/run" + run + "/header.root"; 
+
+  JSROOT.OpenFile(hfile, function(f) 
+  {
+    if (f == null) 
+    {
+      alert("Could not open head file"); 
+      return; 
+    }
+
+    f.ReadObject("header", function (ht) 
+    {
+      var min = parseInt(document.getElementById("spec_min").value); 
+      var cut = "(" + document.getElementById("spec_cut").value+")" + " && ( Entry$ >= " + min +")"; 
+      var max = parseInt(document.getElementById("spec_max").value); 
+      if (max > 0) cut += " && ( Entry$ < " + max + ")"; 
+      if (max < 0) max = ht.fEntries; 
+
+      var args = { expr: "Entry$:header.readout_time+1e-9*header.readout_time_ns", cut: cut, graph: true};
+      ht.Draw(args, function(g,blah1,blah2)
+      {
+        startLoading("[Processing 0/" + g.fNpoints + " entries ]"); 
+
+        var i = 0; 
+        var cut_i = 0; 
+        var sel = new JSROOT.TSelector(); 
+        sel.AddBranch("event.raw_data"); 
+        sel.AddBranch("event.buffer_length"); 
+
+        sel.Begin = function() { ; } 
+        var chs = parseInt(document.getElementById("spec_mask").value); 
+
+        var tmin = g.fY[0]; 
+        var tmax = g.fY[g.fNpoints-1]; 
+        var nsecs = parseFloat(document.getElementById("spec_nsec").value); 
+
+        var nt = Math.ceil((tmax-tmin)/nsecs); 
+        console.log(nt); 
+        tmax = nsecs * nt + tmin; 
+        console.log(tmin); 
+        console.log(tmax); 
+        
+        var specs = []; 
+        var X = []; 
+
+        sel.Process = function() 
+        {
+          if (g.fX[cut_i] > i++ || cut_i >= g.fNpoints) return; 
+
+          var data = this.tgtobj['event.raw_data']; 
+          var N = this.tgtobj['event.buffer_length']; 
+          if (X.length == 0) 
+          {
+            for (var x = 0; x < N; x++) { X.push(x*2) }; 
+          }
+
+          for (var ch = 0; ch < data.length; ch++) 
+          {
+            if (chs && ( chs & ( 1 << ch) == 0)) 
+            {
+              specs[ch] = null; 
+              continue; 
+            }
+
+            if (specs.length == 0 || (chs && specs.length <= ch))
+            {
+              specs.push(new RF.Spectrogram(chs==0 ?"All channels" : "Ch " + ch, nt, tmin,tmax, N/2+1, 0, 0.25)); 
+            }
+
+            var sp= chs == 0 ? specs[0] : specs[ch]; 
+
+            var G= JSROOT.CreateTGraph( N, X, data[ch]); 
+            RF.rectify(G); 
+            sp.addGraph( G, g.fY[cut_i]); 
+          }
+          cut_i++; 
+//          console.log(cut_i, i); 
+
+          if ( cut_i  % Math.floor(g.fNpoints / 100) == 0) startLoading("[Processing "+ cut_i + "/" + g.fNpoints + " entries ]"); 
+        }
+
+        sel.Terminate = function () {
+         
+          stopLoading(); 
+
+          for (var i = 0; i < specs.length; i++) 
+          {
+            var s = specs[i]; 
+            if (s == null) continue; 
+            s.finalize(); 
+            pages["spectrogram"].graphs[i] = s.hist; 
+            var c = addCanvas(pages["spectrogram"],"canvas_tall"); 
+            JSROOT.draw(c, s.hist, "colz", function(painter)
+             {
+             }
+            ); 
+          }
+        } ;
+
+        var nentries = max-min;
+//        console.log(nentries); 
+
+        var sel_args = {numentries: nentries, firstentry: min }; 
+
+        //now load the event tree, 
+        var event_file = "rootdata/run" + run + "/event.root"; 
+        
+        JSROOT.OpenFile(event_file, function(ef) 
+        {
+          ef.ReadObject("event", function(et) 
+          {
+            et.Process(sel,sel_args); 
+          });
+        }); 
+
+      });
+    });
+  }); 
+
+
+
+
+
+  //we'll just make a TGraph, even though it will be insanely long! 
+
+
+
+
+
+
+
+
+}
+
 
 
 function stat()
@@ -1314,6 +1493,10 @@ function show(what)
   {
     evt(); 
   }
+  else if (what == "spectrogram")
+  {
+    spectrogram(); 
+  }
   else
   {
     optAppend("Not implemented yet");  
@@ -1339,6 +1522,7 @@ function monutau_load()
   pages['hk'] = Page('hk'); 
   pages['status'] = Page('status'); 
   pages['event'] = Page('event'); 
+  pages['spectrogram'] = Page('spectrogram'); 
 
   document.getElementById('last_updated').innerHTML = last_updated; 
 
