@@ -1373,7 +1373,7 @@ function makeSpectrogram()
             var y = new Float32Array(data[ch].length); 
             for (var i = 0; i < y.length ;i++) y[i] = data[ch][i]-mn; 
 
-            sp.addY( data[ch], g.fY[cut_i]); 
+            sp.addY( y, g.fY[cut_i]); 
           }
           cut_i++; 
 //          console.log(cut_i, i); 
