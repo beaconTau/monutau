@@ -1275,7 +1275,7 @@ function stopSpectrogram(text="")
 function cancelSpectrogram() 
 {
 
-  stopSpectrogram("Cancelled"); 
+  stopSpectrogram("Cancelled (partial results may plot)"); 
 }
 
 function makeSpectrogram()
@@ -1382,7 +1382,7 @@ function makeSpectrogram()
           cut_i++; 
 //          console.log(cut_i, i); 
 
-          if ( cut_i  % Math.floor(g.fNpoints / 100) == 0) startLoading("[Processing "+ cut_i + "/" + g.fNpoints + " entries ]"); 
+          if ( (cut_i  % Math.floor(g.fNpoints / 100) == 0) && making_spectrogram) startLoading("[Processing "+ cut_i + "/" + g.fNpoints + " entries ]"); 
         }
 
         sel.Terminate = function () {
