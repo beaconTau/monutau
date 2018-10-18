@@ -1346,7 +1346,6 @@ function makeSpectrogram()
 //        console.log(tmax); 
         
         var specs = []; 
-        var X = []; 
 
         sel.Process = function() 
         {
@@ -1355,10 +1354,6 @@ function makeSpectrogram()
 
           var data = this.tgtobj['event.raw_data']; 
           var N = this.tgtobj['event.buffer_length']; 
-          if (X.length == 0) 
-          {
-            for (var x = 0; x < N; x++) { X.push(x*2) }; 
-          }
 
           for (var ch = 0; ch < data.length; ch++) 
           {
@@ -1374,10 +1369,11 @@ function makeSpectrogram()
             }
 
             var sp= chs == 0 ? specs[0] : specs[ch]; 
+            var mn = RF.getMean(data[ch]); 
+            var y = new Float32Array(data[ch].length); 
+            for (var i = 0; i < y.length ;i++) y[i] = data[ch][i]-mn; 
 
-            var G= JSROOT.CreateTGraph( N, X, data[ch]); 
-            RF.rectify(G); 
-            sp.addGraph( G, g.fY[cut_i]); 
+            sp.addY( data[ch], g.fY[cut_i]); 
           }
           cut_i++; 
 //          console.log(cut_i, i); 
