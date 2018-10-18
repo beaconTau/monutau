@@ -1238,7 +1238,7 @@ function evt()
 function spectrogram() 
 {
 
-  optAppend("<b>WARNING: </b> Generating spectrograms essentially requires downloading all the data. Don't try this on a slow connection or metered data plan<br>"); 
+  optAppend("<b>!!WARNING!!:</b> Generating spectrograms essentially requires downloading all the data in a run (since everything is processed client-side). Don't try this on a slow connection or metered data plan<br><br>"); 
   optAppend("Run: <input id='spec_run' size=5 value=''> | "); 
 
   var hash_params = hashParams('spectrogram'); 
@@ -1250,7 +1250,7 @@ function spectrogram()
   optAppend("ChMask : <input alt='channel mask, or 0 for all' id='spec_mask' size=10' value='255' > | "); 
 
 
-  optAppend("<input type='button' value='compute' onClick='makeSpectrogram()'>"); 
+  optAppend("<input id='spec_compute' type='button' value='COMPUTE' onClick='makeSpectrogram()'>"); 
 
   if (hash_params['run'] == undefined) 
   {
@@ -1263,8 +1263,27 @@ function spectrogram()
 
 }
 
+var making_spectrogram = 0; 
+
+function stopSpectrogram(text="") 
+{
+  making_spectrogram = 0; 
+  document.getElementById("spec_compute").value="COMPUTE"; 
+  document.getElementById("spec_compute").onclick=makeSpectrogram; 
+  startLoading(text); 
+}
+function cancelSpectrogram() 
+{
+
+  stopSpectrogram("Cancelled"); 
+}
+
 function makeSpectrogram()
 {
+  document.getElementById("spec_compute").value="CANCEL"; 
+  document.getElementById("spec_compute").onclick=cancelSpectrogram; 
+  making_spectrogram=1; 
+
   run = parseInt(document.getElementById('spec_run').value); 
   window.location.hash = "spectrogram&run=" + run ; 
   clearCanvases(pages['spectrogram'], true); 
@@ -1273,7 +1292,7 @@ function makeSpectrogram()
 
   if (runs.indexOf(run) < 0) 
   {
-    alert("No run " + run); 
+    stopSpectrogram("No run " + run); 
     return; 
   }
 
@@ -1283,21 +1302,28 @@ function makeSpectrogram()
   {
     if (f == null) 
     {
-      alert("Could not open head file"); 
+      stopSpectrogram("Could not open head file"); 
       return; 
     }
 
     f.ReadObject("header", function (ht) 
     {
       var min = parseInt(document.getElementById("spec_min").value); 
+      if (min < 0) min += ht.fEntries; 
+      if (min < 0) min = 0; 
+      if (min >= ht.fEntries) min = ht.fEntries-1; 
+
       var cut = "(" + document.getElementById("spec_cut").value+")" + " && ( Entry$ >= " + min +")"; 
       var max = parseInt(document.getElementById("spec_max").value); 
-      if (max > 0) cut += " && ( Entry$ < " + max + ")"; 
-      if (max < 0) max = ht.fEntries; 
+      if (max < 0) max += ht.fEntries; 
+      if (max < 0) max = 0; 
+      if (max >= ht.fEntries) max = ht.fEntries-1; 
+      cut += " && ( Entry$ < " + max + ")"; 
 
       var args = { expr: "Entry$:header.readout_time+1e-9*header.readout_time_ns", cut: cut, graph: true};
       ht.Draw(args, function(g,blah1,blah2)
       {
+        if (!making_spectrogram) return; 
         startLoading("[Processing 0/" + g.fNpoints + " entries ]"); 
 
         var i = 0; 
@@ -1314,16 +1340,17 @@ function makeSpectrogram()
         var nsecs = parseFloat(document.getElementById("spec_nsec").value); 
 
         var nt = Math.ceil((tmax-tmin)/nsecs); 
-        console.log(nt); 
+//        console.log(nt); 
         tmax = nsecs * nt + tmin; 
-        console.log(tmin); 
-        console.log(tmax); 
+//        console.log(tmin); 
+//        console.log(tmax); 
         
         var specs = []; 
         var X = []; 
 
         sel.Process = function() 
         {
+          if (!making_spectrogram) sel.Abort(); 
           if (g.fX[cut_i] > i++ || cut_i >= g.fNpoints) return; 
 
           var data = this.tgtobj['event.raw_data']; 
@@ -1360,7 +1387,6 @@ function makeSpectrogram()
 
         sel.Terminate = function () {
          
-          stopLoading(); 
 
           for (var i = 0; i < specs.length; i++) 
           {
@@ -1371,12 +1397,18 @@ function makeSpectrogram()
             var c = addCanvas(pages["spectrogram"],"canvas_tall"); 
             JSROOT.draw(c, s.hist, "colz", function(painter)
              {
+               var pal = painter.FindFunction("TPaletteAxis"); 
+               pal.fX2NDC = 0.93; 
+               painter.frame_painter().Zoom(0,0, 0.02, 0.08,0,0); 
              }
             ); 
           }
+
+          if (making_spectrogram) 
+            stopSpectrogram("Done"); 
         } ;
 
-        var nentries = max-min;
+        var nentries = max-min+1;
 //        console.log(nentries); 
 
         var sel_args = {numentries: nentries, firstentry: min }; 
