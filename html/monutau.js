@@ -1238,14 +1238,14 @@ function evt()
 function spectrogram() 
 {
 
-  optAppend("<b>!!WARNING!!:</b> Generating spectrograms essentially requires downloading all the data in a run (since everything is processed client-side). Don't try this on a slow connection or metered data plan<br><br>"); 
+  optAppend("<b>!!WARNING!!:</b> Generating spectrograms essentially requires downloading all the data in a run (since everything is processed client-side). Don't try this on a slow connection or metered data plan. Sometimes, the jsroot click/mouseover handlers don't seem to be applied properly (probably some weird internal timeout); clicking the redraw link will usually fix that.<br><br>"); 
   optAppend("Run: <input id='spec_run' size=5 value=''> | "); 
 
   var hash_params = hashParams('spectrogram'); 
 
   optAppend("Cut: <input id='spec_cut' size=40 value='header.trigger_type==1' > | "); 
-  optAppend("Min: <input alt='minimum entry' id='spec_min' size=5' value='0' >"); 
-  optAppend(" Max: <input alt='maximum entry' id='spec_max' size=5' value='-1' > | "); 
+  optAppend("Min: <input alt='minimum entry' id='spec_min' size=9' value='0' >"); 
+  optAppend(" Max: <input alt='maximum entry' id='spec_max' size=9' value='-1' > | "); 
   optAppend("Nsecs: <input alt='width of time bin entry' id='spec_nsec' size=5' value='10' > | "); 
   optAppend("ChMask : <input alt='channel mask, or 0 for all' id='spec_mask' size=10' value='255' > | "); 
 
@@ -1277,6 +1277,25 @@ function cancelSpectrogram()
 
   stopSpectrogram("Cancelled (partial results may plot)"); 
 }
+
+function specPaintFn(painter) 
+{
+  var pal = painter.FindFunction("TPaletteAxis"); 
+  pal.fX2NDC = 0.93; 
+  painter.frame_painter().Zoom(0,0, 0.02, 0.08,0,0); 
+}
+
+function redrawSpecta() 
+{
+  var P = pages["spectrogram"]; 
+  for (var i = 0; i < P.canvases.length; i++) 
+  {
+    JSROOT.cleanup(P.canvases[i]); 
+    JSROOT.draw(P.canvases[i], P.graphs[i], "colz", specPaintFn); 
+  }
+
+}
+
 
 function makeSpectrogram()
 {
@@ -1357,7 +1376,7 @@ function makeSpectrogram()
 
           for (var ch = 0; ch < data.length; ch++) 
           {
-            if (chs && ( chs & ( 1 << ch) == 0)) 
+            if (chs && !(chs & ( 1 << ch))) 
             {
               specs[ch] = null; 
               continue; 
@@ -1384,24 +1403,23 @@ function makeSpectrogram()
         sel.Terminate = function () {
          
 
+          var ispec = 0;
           for (var i = 0; i < specs.length; i++) 
           {
             var s = specs[i]; 
             if (s == null) continue; 
             s.finalize(); 
-            pages["spectrogram"].graphs[i] = s.hist; 
+            pages["spectrogram"].graphs[ispec++] = s.hist; 
             var c = addCanvas(pages["spectrogram"],"canvas_tall"); 
-            JSROOT.draw(c, s.hist, "colz", function(painter)
-             {
-               var pal = painter.FindFunction("TPaletteAxis"); 
-               pal.fX2NDC = 0.93; 
-               painter.frame_painter().Zoom(0,0, 0.02, 0.08,0,0); 
-             }
-            ); 
+            JSROOT.draw(c, s.hist, "colz", specPaintFn);
           }
 
           if (making_spectrogram) 
             stopSpectrogram("Done"); 
+
+          
+          appendLoading(" <a href='javascript:redrawSpecta()'>[click to redraw] </a>"); 
+
         } ;
 
         var nentries = max-min+1;
@@ -1423,12 +1441,6 @@ function makeSpectrogram()
       });
     });
   }); 
-
-
-
-
-
-  //we'll just make a TGraph, even though it will be insanely long! 
 
 
 
@@ -1496,6 +1508,7 @@ function stat()
 function show(what) 
 {
   playing = false; 
+  if (making_spectrogram) stopSpectrogram("You moved to another page"); 
 
   optClear(); 
 
