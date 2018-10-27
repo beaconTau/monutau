@@ -108,6 +108,27 @@
     }
 
 
+    #overlay
+    {
+      display: none; 
+      width: 90%; 
+      height: 90%; 
+      position: fixed; 
+      top: 5%; 
+      right: 5%; 
+      bottom: 5%; 
+      background-color: #999; 
+      left: 5%; 
+      overflow=auto; 
+    }
+
+    #overlay_c
+    {
+       width: 100%; 
+       height: 100%; 
+       background-color: #888; 
+    }
+
     </style>
 
   </head> 
@@ -128,6 +149,11 @@
     <div id="opt"></div> 
     <div id="load"></div>
     <div id="main"></div> 
+
+    <div id="overlay">
+       <p align="right"> Overlay Window <a href="javascript:closeOverlay()">[close]</a></p>
+      <div id="overlay_c"></div>
+    </div> 
 
   </body> 
 
