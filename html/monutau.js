@@ -603,6 +603,131 @@ v_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper);
 
 first_int = true; 
 
+function drawMaxes(where, hist, n=3, min_distance =15)
+{
+  var maxes = []; 
+
+  for (var imax = 0; imax < n; imax++) 
+  {
+    var max = 0; 
+    var max_x = 0; 
+    var max_y = 0; 
+
+    for (var i = 1; i <= hist.fXaxis.fNbins; i++) 
+    {
+      for (var j = 1; j <= hist.fYaxis.fNbins; j++) 
+      {
+        var val = hist.getBinContent(i,j); 
+
+        if (val > max) 
+        {
+          var x = hist.fXaxis.GetBinCenter(i);
+          var y = hist.fYaxis.GetBinCenter(j);
+          if (maxes.length > 0) 
+          {
+            var too_close = false; 
+
+            //check that we're not too close to a max
+
+            for (var iimax = 0; iimax< maxes.length; iimax++) 
+            {
+              var xdiff = maxes[iimax].x-x; 
+              if (xdiff > 180) xdiff = 360-xdiff; 
+              if (xdiff < -180) xdiff = 360+xdiff; 
+              if (Math.pow(xdiff,2) + Math.pow(maxes[iimax].y-y,2) < min_distance*min_distance)
+              {
+                too_close = true; 
+                break; 
+              }
+            }
+
+            if (too_close) continue; 
+          }
+
+          max = val; 
+          max_x = x; 
+          max_y = y; 
+   
+        }
+
+     }
+    }
+
+    var this_max= { x: max_x, y: max_y, max: max};
+    maxes.push(this_max); 
+    var R = 2.5*(n-imax); 
+
+//    console.log(max_x, max_y, R); 
+
+    var ell = JSROOT.Create("TObject"); 
+    JSROOT.Create("TAttFill",ell); 
+    JSROOT.Create("TAttLine",ell); 
+    JSROOT.Create("TEllipse",ell); 
+    ell.fLineColor = 3;
+    ell.fLineStyle = 1;
+    JSROOT.extend(ell, { fX1: max_x, fY1: max_y, fR1: R, fR2: R, fPhimin: 0, fPhimax: 360, fTheta:0}); 
+    JSROOT.draw(where,ell); 
+  }
+}
+
+the_h_graphs=[]; 
+the_v_graphs=[]; 
+
+coh_graphs = []; 
+function drawCoherent(info) 
+{
+  var binx = info.binx; 
+  var biny = info.biny; 
+  var clicked_h = info.obj; 
+  var x = clicked_h.fXaxis.GetBinCenter(binx);
+  var y = clicked_h.fYaxis.GetBinCenter(biny);
+
+  //make calculate the dts 
+
+  var h_graphs= []; 
+  var v_graphs= []; 
+
+  var first = 0; 
+  var times = []; 
+  for (var i = 0; i < the_h_graphs.length; i++) 
+  {
+    if (the_h_graphs[i] != null) 
+    {
+      h_graphs.push(the_h_graphs[i]); 
+      v_graphs.push(the_v_graphs[i]); 
+      if (times.length == 0) 
+      {
+        first = i; 
+      }
+      times.push(first == i ? 0 : mapper.deltaTs(i,first,x,y)); 
+    }
+  }
+
+  if (h_graphs.length > 0) 
+  {
+    var gh= RF.coherentSum(h_graphs,times); 
+    var gv= RF.coherentSum(v_graphs,times); 
+    gh.fTitle = "Coherent HPol"; 
+    gv.fTitle = "Coherent VPol"; 
+    gv.fLineColor = 2; 
+    gv.fMarkerColor = 2; 
+
+    var all_graphs = [gh,gv]; 
+    var mg = JSROOT.CreateTMultiGraph.apply(0,all_graphs);
+    mg.fTitle = "#phi = "+ x + " , #theta = " + y; 
+    showOverlay(); 
+
+    JSROOT.draw("overlay_c",mg, "alp", 
+        function(p) 
+        {
+          var leg = makeLegend(0.7,1,0.9,1, [gh,gv]); 
+          JSROOT.draw(p.divid,leg,"same"); 
+        });
+  }
+}
+
+
+
 function go(i) 
 {
   var P = pages['event']; 
@@ -1017,7 +1142,7 @@ function go(i)
          // if (isNaN(cutoff)) cutoff = 0;
           //h_map.cutoff = cutoff; 
 //          v_map.cutoff = cutoff; 
-          var reverse = document.getElementById('map_reverse_sign').checked; 
+
           var h_graphs = new Array(4) 
           var v_graphs = new Array(4) 
  //         console.log(mask); 
@@ -1038,11 +1163,16 @@ function go(i)
 
           }
 
-          h_map.compute(h_graphs,reverse);
-          v_map.compute(v_graphs,reverse);
+          the_h_graphs = h_graphs;
+          the_v_graphs = v_graphs;
 
-          h_map.setTitle("HPol (BETA)","azimuth (deg)","elevation (deg)"); 
-          v_map.setTitle("VPol (BETA)","azimuth (deg)","elevation (deg)"); 
+          var avg_map =document.getElementById('map_avg').checked; 
+
+          h_map.compute(h_graphs,avg_map);
+          v_map.compute(v_graphs,avg_map);
+
+          h_map.setTitle(avg_map ? "HPol (navgs=" + h_map.navg+")" : "HPol","azimuth (deg)","elevation (deg)"); 
+          v_map.setTitle(avg_map ? "VPol (navgs=" + v_map.navg+")" : "VPol","azimuth (deg)","elevation (deg)"); 
 
 
           if (first_int) 
@@ -1060,16 +1190,19 @@ function go(i)
 
           var int_fn = function(painter) 
           {
-                var hist = painter.GetObject().fHistogram; 
                 var tpainter = painter.FindPainterFor(null,"title"); 
                 var pavetext = tpainter.GetObject(); 
                 var pal = painter.FindFunction("TPaletteAxis"); 
 
+                drawMaxes(painter.divid, painter.GetObject(), parseInt(document.getElementById('map_nmax').value)); 
+
+                painter.ConfigureUserClickHandler(drawCoherent); 
+
+
 //                pal.fAxis.fLabelColor = 31; 
-                painter.Redraw(); 
+ //               painter.Redraw(); 
 //                pavetext.fTextColor = 31; 
-                tpainter.Redraw(); 
-                JSROOT.redraw(painter.divid, hist, ""); 
+//                tpainter.Redraw(); 
  
           }
 
@@ -1225,7 +1358,8 @@ function evt()
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
-  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> -dt? <input type='checkbox' id='map_reverse_sign' title='this controls the sign of dt' onchange='go(-1)'>");
+  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> avg? <input id='map_avg' type='checkbox' onchange='go(-1)'>");
+  optAppend("  nmax:<input id='map_nmax' value='3' onchange='go(-1)' size=2> "); 
 //  optAppend(" cutoff: <input id='map_cutoff' title='frequency cutoff for cross-correlations' size=5 value='0'>"); 
 
 
@@ -1543,6 +1677,29 @@ function show(what)
     optAppend("Not implemented yet");  
   }
 }
+
+
+function closeOverlay() 
+{
+  var overlay = document.getElementById("overlay"); 
+  overlay.style.display = 'none'; 
+  JSROOT.cleanup("overlay_c"); 
+}
+
+function showOverlay()
+{
+  var overlay = document.getElementById("overlay"); 
+
+  if (overlay.style.display == 'block')
+  {
+    JSROOT.cleanup("overlay_c"); 
+  }
+
+
+  overlay.style.display = 'block'; 
+  return overlay; 
+}
+
 
 
 function monutau_load()
