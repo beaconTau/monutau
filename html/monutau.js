@@ -709,8 +709,10 @@ function drawCoherent(info)
     var gv= RF.coherentSum(v_graphs,times); 
     gh.fTitle = "Coherent HPol"; 
     gv.fTitle = "Coherent VPol"; 
-    gv.fLineColor = 2; 
-    gv.fMarkerColor = 2; 
+    gh.fLineColor = 38; 
+    gh.fMarkerColor = 38; 
+    gv.fLineColor = 44; 
+    gv.fMarkerColor = 44; 
 
     var all_graphs = [gh,gv]; 
     var mg = JSROOT.CreateTMultiGraph.apply(0,all_graphs);
