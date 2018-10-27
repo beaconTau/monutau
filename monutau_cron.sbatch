@@ -15,8 +15,8 @@
 #SBATCH --qos=cron
 
 # Specify a valid cron string for the schedule
-# this is every half an hour
-SCHEDULE='29,59 * * * *'
+# this is every 15 minutes
+SCHEDULE='14,29,44,59 * * * *'
 
 
 #cancel any other script if there is one already
