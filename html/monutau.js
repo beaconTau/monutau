@@ -689,12 +689,16 @@ function drawCoherent(info)
 
   var first = 0; 
   var times = []; 
+  var h_names = []; 
+  var v_names = []; 
   for (var i = 0; i < the_h_graphs.length; i++) 
   {
     if (the_h_graphs[i] != null) 
     {
       h_graphs.push(the_h_graphs[i]); 
       v_graphs.push(the_v_graphs[i]); 
+      h_names.push("HPol " + i); 
+      v_names.push("VPol " + i); 
       if (times.length == 0) 
       {
         first = i; 
@@ -705,26 +709,94 @@ function drawCoherent(info)
 
   if (h_graphs.length > 0) 
   {
-    var gh= RF.coherentSum(h_graphs,times); 
-    var gv= RF.coherentSum(v_graphs,times); 
-    gh.fTitle = "Coherent HPol"; 
-    gv.fTitle = "Coherent VPol"; 
-    gh.fLineColor = 38; 
-    gh.fMarkerColor = 38; 
-    gv.fLineColor = 44; 
-    gv.fMarkerColor = 44; 
+    if (document.getElementById("click_coh").checked) 
+    {
+      var gh= RF.coherentSum(h_graphs,times); 
+      var gv= RF.coherentSum(v_graphs,times); 
+      gh.fTitle = "Coherent HPol"; 
+      gv.fTitle = "Coherent VPol"; 
+      gh.fLineColor = 38; 
+      gh.fMarkerColor = 38; 
+      gv.fLineColor = 44; 
+      gv.fMarkerColor = 44; 
 
-    var all_graphs = [gh,gv]; 
-    var mg = JSROOT.CreateTMultiGraph.apply(0,all_graphs);
-    mg.fTitle = "#phi = "+ x + " , #theta = " + y; 
-    showOverlay("[ Coherent Sum]"); 
+      var all_graphs = [gh,gv]; 
+      var mg = JSROOT.CreateTMultiGraph.apply(0,all_graphs);
+      mg.fTitle = "#phi = "+ x + " , #theta = " + y; 
+      showOverlay("[ Coherent Sum]"); 
 
-    JSROOT.draw("overlay_c",mg, "alp", 
-        function(p) 
+      JSROOT.draw("overlay_c",mg, "alp", 
+          function(p) 
+          {
+            var hist = p.firstpainter.GetHisto(); 
+            hist.fXaxis.fTitle="ns"
+            hist.fYaxis.fTitle="sum adu"
+            JSROOT.redraw(p.divid, hist,"", function(p)
+            {
+              var leg = makeLegend(0.7,1,0.9,1, [gh,gv]); 
+              JSROOT.draw(p.divid,leg,"same"); 
+            });
+ 
+          });
+    }
+    else
+    {
+      
+      make_shifted_copy = function(raw_graphs, times, names,upsample = 3) 
+      {
+        var out = []; 
+        for (var i = 0; i < raw_graphs.length; i++) 
         {
-          var leg = makeLegend(0.7,1,0.9,1, [gh,gv]); 
-          JSROOT.draw(p.divid,leg,"same"); 
-        });
+          var gg = JSROOT.CreateTGraph(raw_graphs[i].fNpoints, raw_graphs[i].fX.slice(0), raw_graphs[i].fY.slice(0)); 
+          RF.upsample(gg, upsample+1); 
+          RF.shiftTimes(gg, times[i]); 
+          gg.fTitle = names[i]; 
+          gg.fLineColor = graph_colors[i];
+          gg.fMarkerColor = graph_colors[i]; 
+          gg.InvertBit(JSROOT.BIT(18)); 
+          out.push(gg); 
+        }
+        return out;
+      }
+
+      var shift_h_graphs = make_shifted_copy(h_graphs,times,h_names);
+      var shift_v_graphs = make_shifted_copy(v_graphs,times,v_names);
+
+
+      showOverlay("[ Aligned HPol, VPol ]"); 
+      document.getElementById("overlay_c").innerHTML="<div class='half_v'  id='aligned_h'></div><div class='half_v' id='aligned_v'></div>"; 
+
+      var hmg = JSROOT.CreateTMultiGraph.apply(0,shift_h_graphs);
+      hmg.fTitle = "HPol #phi = "+ x + " , #theta = " + y; 
+      JSROOT.draw("aligned_h",hmg, "alp", 
+          function(p) 
+          {
+            var hist = p.firstpainter.GetHisto(); 
+            hist.fXaxis.fTitle="ns"
+            hist.fYaxis.fTitle="adu"
+            JSROOT.redraw(p.divid,hist,"", function(p)
+                {
+                  var leg = makeLegend(0.7,1,0.9,1, shift_h_graphs); 
+                  JSROOT.draw(p.divid,leg,"same"); 
+                });
+          });
+      var vmg = JSROOT.CreateTMultiGraph.apply(0,shift_v_graphs);
+      hmg.fTitle = "VPol #phi = "+ x + " , #theta = " + y; 
+      JSROOT.draw("aligned_v",vmg, "alp", 
+          function(p) 
+          {
+            var hist = p.firstpainter.GetHisto(); 
+            hist.fXaxis.fTitle="ns"
+            hist.fYaxis.fTitle="adu"
+
+            JSROOT.redraw(p.divid,hist,"", function(p)
+                {
+                  var leg = makeLegend(0.7,1,0.9,1, shift_v_graphs); 
+                  JSROOT.draw(p.divid,leg,"same"); 
+                });
+          });
+
+    }
   }
 }
 
@@ -738,7 +810,6 @@ function xcorr_style(g)
 function show_xcorrs() 
 {
   showOverlay(" [ HPol XCorrs | VPol XCorrs ]"); 
-//  document.getElementById("overlay_c").innerHTML = "<div id='left_title' class='half'><b>HPol</b></div><div id='right_title' class='half'><b>VPol</b></div>"; 
   document.getElementById("overlay_c").innerHTML = "<div id='left_c' class='half'></div><div id='right_c' class='half'></div>"; 
   JSROOT.AssertPrerequisites("hierarchy", function() 
   {
@@ -1375,13 +1446,14 @@ function evt()
   optAppend(" auto<input type='checkbox' id='evt_autoscale' onchange='go(-1)'>"); 
   optAppend(" | spec?<input type='checkbox' id='evt_fft' checked title='Compute power spectrum (necessary for upsampling)' onchange='go(-1)'>");
   optAppend("avg?<input type='checkbox' id='avg_fft' title='Check to average fft's (uncheck to reset)' onchange='go(-1)'>");
-  optAppend(" Up<input type='range' value='1' min='1' max ='8' class='slider'   id='upsample' onchange='go(-1)' title='upsample factor'>"); 
+  optAppend(" up<input type='range' value='1' min='1' max ='8' class='slider'   id='upsample' onchange='go(-1)' title='upsample factor'>"); 
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
   optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> avg? <input id='map_avg' type='checkbox' onchange='go(-1)'>");
   optAppend("  nmax:<input id='map_nmax' value='3' onchange='go(-1)' size=2> "); 
-  optAppend("  <input id='xc_button' type='button' value='xc' onclick='show_xcorrs()' size=2> "); 
+  optAppend("  <input id='xc_button' type='button' value='xc'title='show xcorrs' onclick='show_xcorrs()' > "); 
+  optAppend(" coh: <input id='click_coh' type=checkbox title='Show coherent waveforms when clicking on map' size=5 checked'>"); 
 //  optAppend(" cutoff: <input id='map_cutoff' title='frequency cutoff for cross-correlations' size=5 value='0'>"); 
 
 
