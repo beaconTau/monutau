@@ -781,7 +781,7 @@ function drawCoherent(info)
                 });
           });
       var vmg = JSROOT.CreateTMultiGraph.apply(0,shift_v_graphs);
-      hmg.fTitle = "VPol #phi = "+ x + " , #theta = " + y; 
+      vmg.fTitle = "VPol #phi = "+ x + " , #theta = " + y; 
       JSROOT.draw("aligned_v",vmg, "alp", 
           function(p) 
           {
