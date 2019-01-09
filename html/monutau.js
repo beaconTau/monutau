@@ -22,7 +22,7 @@ function checkModTime(file, callback)
 function updateRunlist() 
 {
   var xhr = new XMLHttpRequest() ;
-  xhr.open('GET','runlist.json'); 
+  xhr.open('GET','runlist.json?'+Date.now()); 
   xhr.onload = function() 
   {
     if (xhr.status == 200) 
@@ -717,7 +717,7 @@ function drawCoherent(info)
     var all_graphs = [gh,gv]; 
     var mg = JSROOT.CreateTMultiGraph.apply(0,all_graphs);
     mg.fTitle = "#phi = "+ x + " , #theta = " + y; 
-    showOverlay(); 
+    showOverlay("[ Coherent Sum]"); 
 
     JSROOT.draw("overlay_c",mg, "alp", 
         function(p) 
@@ -728,6 +728,25 @@ function drawCoherent(info)
   }
 }
 
+
+function xcorr_style(g) 
+{
+  g.fLineColor = graph_colors[0]; 
+  g.fMarkerColor = graph_colors[0]; 
+}
+
+function show_xcorrs() 
+{
+  showOverlay(" [ HPol XCorrs | VPol XCorrs ]"); 
+//  document.getElementById("overlay_c").innerHTML = "<div id='left_title' class='half'><b>HPol</b></div><div id='right_title' class='half'><b>VPol</b></div>"; 
+  document.getElementById("overlay_c").innerHTML = "<div id='left_c' class='half'></div><div id='right_c' class='half'></div>"; 
+  JSROOT.AssertPrerequisites("hierarchy", function() 
+  {
+    h_map.drawXCorrs("left_c", xcorr_style); 
+    v_map.drawXCorrs("right_c", xcorr_style); 
+  }
+  );
+}
 
 
 function go(i) 
@@ -1362,6 +1381,7 @@ function evt()
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
   optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> avg? <input id='map_avg' type='checkbox' onchange='go(-1)'>");
   optAppend("  nmax:<input id='map_nmax' value='3' onchange='go(-1)' size=2> "); 
+  optAppend("  <input id='xc_button' type='button' value='xc' onclick='show_xcorrs()' size=2> "); 
 //  optAppend(" cutoff: <input id='map_cutoff' title='frequency cutoff for cross-correlations' size=5 value='0'>"); 
 
 
@@ -1504,8 +1524,12 @@ function makeSpectrogram()
 
         sel.Process = function() 
         {
-          if (!making_spectrogram) sel.Abort(); 
-          if (g.fX[cut_i] > i++ || cut_i >= g.fNpoints) return; 
+          if (!making_spectrogram || cut_i > g.fNpoints)
+          {
+            sel.Abort(); 
+            return; 
+          }
+          if (g.fX[cut_i] > i++) return; 
 
           var data = this.tgtobj['event.raw_data']; 
           var N = this.tgtobj['event.buffer_length']; 
@@ -1688,10 +1712,11 @@ function closeOverlay()
   JSROOT.cleanup("overlay_c"); 
 }
 
-function showOverlay()
+function showOverlay(title='Overlay Window')
 {
   var overlay = document.getElementById("overlay"); 
 
+  document.getElementById('overlay_title').innerHTML=title; 
   if (overlay.style.display == 'block')
   {
     JSROOT.cleanup("overlay_c"); 

@@ -7,7 +7,7 @@
     <link rel="shortcut icon"
      href="monutau.ico">
 
-    <script type="text/javascript" src="jsroot/scripts/JSRootCore.js?2d&io&tree"> </script>
+    <script type="text/javascript" src="jsroot/scripts/JSRootCore.js?2d&hierarchy&io&tree"> </script>
     <script type="text/javascript" src="runlist.js"></script>
     <script type="text/javascript" src="KissFFT.js"></script>
     <script type="text/javascript" src="FFT.js"></script>
@@ -119,7 +119,6 @@
       bottom: 5%; 
       background-color: #999; 
       left: 5%; 
-      overflow=auto; 
     }
 
     #overlay_c
@@ -127,6 +126,12 @@
        width: 100%; 
        height: 100%; 
        background-color: #888; 
+    }
+
+    .half
+    {
+      width: 50%; 
+      float: left; 
     }
 
     </style>
@@ -139,7 +144,7 @@
       <a href="#status" onClick="return show('status')">status</a> | 
       <a href="#event" onClick="return show('event')">events</a> | 
       <a href="#spectrogram" onClick="return show('spectrogram')">spectrograms</a> | 
-      <small>Last updated <span id="last_updated"></span>. <small>[<a href="https://github.com/beaconTau/monutau">code</a>][<a href="https://github.com/beaconTau/monutau/issues">report a bug</a>]</small> </small>
+      <small>Last updated <span id="last_updated"></span>. <small>[<a href="https://github.com/beaconTau/monutau">code</a>][<a href="https://github.com/beaconTau/monutau/issues">report a bug</a>][<a href="https://docs.google.com/spreadsheets/d/1wtpAkHmYaF5IQLyx6IOOocwpMju9UZcPpRcxAdBqPKo/edit?usp=sharing">runlog</a>]</small> </small>
    </p>
 
 
@@ -151,7 +156,7 @@
     <div id="main"></div> 
 
     <div id="overlay">
-       <p align="right"> Overlay Window <a href="javascript:closeOverlay()">[close]</a></p>
+      <p align="center"> <span id='overlay_title'></span> <span style="float: right;"> <a href="javascript:closeOverlay()">[close]</a></p>
       <div id="overlay_c"></div>
     </div> 
 
