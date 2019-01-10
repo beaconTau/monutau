@@ -813,8 +813,8 @@ function show_xcorrs()
   document.getElementById("overlay_c").innerHTML = "<div id='left_c' class='half'></div><div id='right_c' class='half'></div>"; 
   JSROOT.AssertPrerequisites("hierarchy", function() 
   {
-    h_map.drawXCorrs("left_c", xcorr_style); 
-    v_map.drawXCorrs("right_c", xcorr_style); 
+    h_map.drawXCorrs("left_c", xcorr_style,50); 
+    v_map.drawXCorrs("right_c", xcorr_style,50); 
   }
   );
 }
