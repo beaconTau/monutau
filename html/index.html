@@ -108,6 +108,20 @@
     }
 
 
+    #mapconfig 
+    {
+      display: none; 
+      width: 600px; 
+      height: 300px; 
+      left: 50%; 
+      margin-left:-300px; 
+      position:fixed;
+      top: 10%; 
+      background-color: #999; 
+      border:1px solid #000;
+      padding: 15px; 
+    }
+
     #overlay
     {
       display: none; 
@@ -162,6 +176,32 @@
     <div id="opt"></div> 
     <div id="load"></div>
     <div id="main"></div> 
+
+    <div id="mapconfig"> 
+
+      <span> 
+      <p>Num Maxima:<input id='map_nmax' value='3' size=2>  
+      <p>Channel Mask:<input id='map_mask' value='15' size=2> 
+      <p>Apply HPol offsets: <input type ='checkbox' id='map_applyoffs'> 
+
+      01:<input id="offs_01" size=5 value='-3.46'>
+      02:<input id="offs_02" size=5 value='2.80'>
+      03:<input id="offs_03" size=5 value='-4.92'>
+      12:<input id="offs_12" size=5 value='5.92'>
+      13:<input id="offs_13" size=5 value='-1.32'>
+      23:<input id="offs_23" size=5 value='-7.33'>
+
+      <p>fmin: <input id="map_fmin" size=5 value='0'>
+      <br>fmax: <input id="map_fmax" size=5 value='0'>
+
+      <p> Use cropped waveforms <input id="map_crop" type='checkbox'> 
+      <br>tmin: <input id="map_tmin" size=5 value='0'>
+      <br>tmax: <input id="map_tmax" size=5 value='0'>
+
+
+      <p align='center'> <input id='cfg_close' size=100 value="APPLY" onClick='hideMapConfig()' type='button'> 
+      </span>
+    </div> 
 
     <div id="overlay">
       <p align="center"> <span id='overlay_title'></span> <span style="float: right;"> <a href="javascript:closeOverlay()">[close]</a></p>

@@ -3,6 +3,8 @@ var graph_colors = [30,46,28,6,7,5,4,42,41,2,3,10,49,1,33,40,37,32,29,20,21,22,2
 
 var header_vars = ["event_number","trig_number","buffer_length","pretrigger_samples","readout_time", "readout_time_ns", "trig_time","raw_approx_trigger_time","raw_approx_trigger_time_nsecs","triggered_beams","beam_power","buffer_number","gate_flag","trigger_type","sync_problem"]; 
 
+
+
 function checkModTime(file, callback)
 {
 
@@ -601,6 +603,24 @@ mapper = RF.AngleMapper(antennas);
 h_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
 v_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
 
+
+
+function setOffsets() 
+{
+  h_map.setBaselineTimeOffset(0,1,parseFloat(document.getElementById('offs_01').value)); 
+  h_map.setBaselineTimeOffset(0,2,parseFloat(document.getElementById('offs_02').value)); 
+  h_map.setBaselineTimeOffset(0,3,parseFloat(document.getElementById('offs_03').value)); 
+  h_map.setBaselineTimeOffset(1,2,parseFloat(document.getElementById('offs_12').value)); 
+  h_map.setBaselineTimeOffset(1,3,parseFloat(document.getElementById('offs_13').value)); 
+  h_map.setBaselineTimeOffset(2,3,parseFloat(document.getElementById('offs_23').value)); 
+}
+
+function resetOffsets()
+{
+  h_map.resetBaselineTimeOffsets();  
+}
+
+
 first_int = true; 
 
 function drawMaxes(where, hist, n=3, min_distance =15)
@@ -1046,7 +1066,6 @@ function go(i)
           var g= JSROOT.CreateTGraph(N, X, data[ch]); 
 
           for (var y = 0; y < N; y++) { g.fY[y]-=64; } 
-
           if (document.getElementById('filt').checked) 
           {
             var As = document.getElementById('filt_A').value.split(','); 
@@ -1229,6 +1248,40 @@ function go(i)
 
         if (document.getElementById('map').checked) //interferometry
         {
+
+          if (document.getElementById('map_applyoffs').checked)
+          {
+            setOffsets(); 
+          }
+          else
+          {
+            resetOffsets(); 
+          }
+
+          if (document.getElementById('map_crop').checked)
+          {
+            h_map.setTimeRange(
+                parseFloat(document.getElementById('map_tmin').value), 
+                parseFloat(document.getElementById('map_tmax').value) ); 
+            v_map.setTimeRange(
+                parseFloat(document.getElementById('map_tmin').value), 
+                parseFloat(document.getElementById('map_tmax').value) ); 
+          }
+          else
+          {
+            h_map.unsetTimeRange();
+            v_map.unsetTimeRange();
+          }
+
+          h_map.setFreqRange(parseFloat(document.getElementById("map_fmin").value),
+                            parseFloat(document.getElementById("map_fmax").value));
+
+          v_map.setFreqRange(parseFloat(document.getElementById("map_fmin").value),
+                            parseFloat(document.getElementById("map_fmax").value));
+
+
+
+
           var mask = parseInt(document.getElementById('map_mask').value); 
           //var cutoff = parseFloat(document.getElementById('map_cutoff').value); 
          // if (isNaN(cutoff)) cutoff = 0;
@@ -1450,8 +1503,8 @@ function evt()
   optAppend(" | env?<input type='checkbox' id='evt_hilbert' title='Compute Hilbert Envelope (requires spectrum))' onchange='go(-1)'>");
   optAppend(" | meas?<input type='checkbox' id='evt_measure' title='Perform measurements' onchange='go(-1)'>");
   optAppend(" | filt?<input type='checkbox' id='filt' title='Apply filter' onchange='go(-1)'> b:<input id='filt_B' size=15 title='Filter B coeffs (Comma separated)' value='1,6,15,20,15,6,1'> a:<input id='filt_A' title='Filter A coeffs (Comma separated)' size=15 value='64'>"); 
-  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> msk: <input id='map_mask' onchange='go(-1)' value='15' size=2> avg? <input id='map_avg' type='checkbox' onchange='go(-1)'>");
-  optAppend("  nmax:<input id='map_nmax' value='3' onchange='go(-1)' size=2> "); 
+  optAppend(" | map?<input type='checkbox' checked id='map' title='Do interferometric map' onchange='go(-1)'> avg? <input id='map_avg' type='checkbox' onchange='go(-1)'>");
+  optAppend(" <input id='showcfg' type='button' value='cfg' title='configure maps' onclick='showMapConfig()'>"); 
   optAppend("  <input id='xc_button' type='button' value='xc'title='show xcorrs' onclick='show_xcorrs()' > "); 
   optAppend(" coh: <input id='click_coh' type=checkbox title='Show coherent waveforms when clicking on map' size=5 checked'>"); 
 //  optAppend(" cutoff: <input id='map_cutoff' title='frequency cutoff for cross-correlations' size=5 value='0'>"); 
@@ -1834,4 +1887,17 @@ function monutau_load()
   }
   setInterval(updateRunlist, 10e3); 
 }
+
+function showMapConfig() 
+{
+  document.getElementById("mapconfig").style.display='block'
+}
+
+function hideMapConfig() 
+{
+
+  go(-1); 
+  document.getElementById("mapconfig").style.display='none'
+}
+
 
