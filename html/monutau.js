@@ -605,21 +605,6 @@ v_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper);
 
 
 
-function setOffsets() 
-{
-  h_map.setBaselineTimeOffset(0,1,parseFloat(document.getElementById('offs_01').value)); 
-  h_map.setBaselineTimeOffset(0,2,parseFloat(document.getElementById('offs_02').value)); 
-  h_map.setBaselineTimeOffset(0,3,parseFloat(document.getElementById('offs_03').value)); 
-  h_map.setBaselineTimeOffset(1,2,parseFloat(document.getElementById('offs_12').value)); 
-  h_map.setBaselineTimeOffset(1,3,parseFloat(document.getElementById('offs_13').value)); 
-  h_map.setBaselineTimeOffset(2,3,parseFloat(document.getElementById('offs_23').value)); 
-}
-
-function resetOffsets()
-{
-  h_map.resetBaselineTimeOffsets();  
-}
-
 
 first_int = true; 
 
@@ -1249,14 +1234,6 @@ function go(i)
         if (document.getElementById('map').checked) //interferometry
         {
 
-          if (document.getElementById('map_applyoffs').checked)
-          {
-            setOffsets(); 
-          }
-          else
-          {
-            resetOffsets(); 
-          }
 
           if (document.getElementById('map_crop').checked)
           {
@@ -1310,6 +1287,8 @@ function go(i)
 
           the_h_graphs = h_graphs;
           the_v_graphs = v_graphs;
+
+          setOffsets(); 
 
           var avg_map =document.getElementById('map_avg').checked; 
 
@@ -1899,5 +1878,27 @@ function hideMapConfig()
   go(-1); 
   document.getElementById("mapconfig").style.display='none'
 }
+
+function setOffsets() 
+{
+  if (document.getElementById('map_applyhoffs').checked) 
+  {
+    RF.shiftTimes(the_h_graphs[0], parseFloat(document.getElementById('offs_h0').value));
+    RF.shiftTimes(the_h_graphs[1], parseFloat(document.getElementById('offs_h1').value));
+    RF.shiftTimes(the_h_graphs[2], parseFloat(document.getElementById('offs_h2').value));
+    RF.shiftTimes(the_h_graphs[3], parseFloat(document.getElementById('offs_h3').value));
+  }
+
+  if (document.getElementById('map_applyvoffs').checked) 
+  {
+    RF.shiftTimes(the_v_graphs[0], parseFloat(document.getElementById('offs_v0').value));
+    RF.shiftTimes(the_v_graphs[1], parseFloat(document.getElementById('offs_v1').value));
+    RF.shiftTimes(the_v_graphs[2], parseFloat(document.getElementById('offs_v2').value));
+    RF.shiftTimes(the_v_graphs[3], parseFloat(document.getElementById('offs_v3').value));
+  }
+
+
+}
+
 
 
