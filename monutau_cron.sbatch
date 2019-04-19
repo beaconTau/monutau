@@ -13,6 +13,7 @@
 #SBATCH --partition=cron
 #SBATCH --job-name=monutau_cron
 #SBATCH --qos=cron
+#SBATCH --nodelist=midway-login1
 
 # Specify a valid cron string for the schedule
 # this is every 15 minutes
@@ -21,7 +22,7 @@ SCHEDULE='14,29,44,59 * * * *'
 
 #cancel any other script if there is one already
 scancel --name monutau 
-sbatch -A pi-avieregg -p sandyb monutau.sbatch
+sbatch -A kicp -p kicp monutau.sbatch
 
 # resubmit this script with --begin set to the next scheduled cron time
 # next-cron-time is a script that parses a cron schedule string and returns
