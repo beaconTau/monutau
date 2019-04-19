@@ -1370,6 +1370,7 @@ function go(i)
           histo.fMaximum = 60;
           histo.fXaxis.fTitle = "f (GHz)"; 
           histo.fYaxis.fTitle = "db ish"; 
+          histo.fYaxis.fTitleOffset = 0.5; 
           setGraphHistStyle(histo); 
           mg.fHistogram = histo; 
           dl_link.setAttribute("href",encodeURI(csvContent)); 
