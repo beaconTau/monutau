@@ -600,8 +600,8 @@ antennas = [
 
 mapper = RF.AngleMapper(antennas); 
 
-h_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
-v_map = new RF.InterferometricMap(120,-180,180,60,-90,90, mapper); 
+h_map = new RF.InterferometricMap(mapper,120,-180,180,60,-90,90); 
+v_map = new RF.InterferometricMap(mapper,120,-180,180,60,-90,90); 
 
 
 
