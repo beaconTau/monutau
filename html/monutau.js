@@ -86,7 +86,9 @@ function prettyPrintHeader(vars)
   }
 
   var isRF = parseInt(vars["header.trigger_type"]) == 2; 
-  str += "<tr><td>Trigger type: " + ( isRF ? "RF" : "FORCE") + "</td>"
+  var isExt = parseInt(vars["header.trigger_type"]) == 3; 
+
+  str += "<tr><td>Trigger type: " + ( isRF ? "RF" : isExt ? "EXT" :  "FORCE") + "</td>"
   var triggered_beams = Math.log2(parseInt(vars["header.triggered_beams"])); 
   str += "<td>Triggered beam: " + (isRF? triggered_beams : "N/A") +"</td>"; 
   str += "<td>Triggered beam power: " + (isRF ? vars["header.beam_power"] : "N/A") + "</td>"; 
