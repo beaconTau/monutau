@@ -128,7 +128,7 @@ new_hk:
 
 # Merge all housekeeping into a single root file since it's small 
 $(HTML_DIR)/all_hk.root: new_hk  | $(HTML_DIR) rootify
-	hadd  $@.tmp $(ROOT_DIR)/hk/*/*/*.root
+	hadd  -f $@.tmp $(ROOT_DIR)/hk/*/*/*.root
 	mv $@.tmp $@
 
 
