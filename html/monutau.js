@@ -79,6 +79,12 @@ function prettyPrintHeader(vars)
   str += "<td>Event number: " + vars["header.event_number"] +"</td>"; 
   str += "<td>Trigger number: " + vars["header.trig_number"] +"</td>"; 
   str += "<td>Readout time : " + new Date(parseInt(vars["header.readout_time"])*1000 + parseInt(vars["header.readout_time_ns"])/1e6).toISOString() +"</td>"; 
+  var run = parseFloat(vars["header.event_number"])/1e9;  
+  if (run > 737) 
+  {
+	  str += "<td>Approx Trigger Time time : " + new Date(parseInt(vars["header.raw_approx_trigger_time"])*1000 + parseInt(vars["header.raw_approx_trigger_time_nsecs"])/1e6).toISOString() +"</td></tr>"; 
+  }
+
   var isRF = parseInt(vars["header.trigger_type"]) == 2; 
   str += "<tr><td>Trigger type: " + ( isRF ? "RF" : "FORCE") + "</td>"
   var triggered_beams = Math.log2(parseInt(vars["header.triggered_beams"])); 
