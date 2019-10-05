@@ -823,14 +823,23 @@ function xcorr_style(g)
   g.fMarkerColor = graph_colors[0]; 
 }
 
+var xcorrs_max_delay = 150; 
+
+function update_max_dt()
+{
+  xcorrs_max_delay = parseInt(document.getElementById('xc_max_delay').value); 
+  show_xcorrs();
+
+}
+
 function show_xcorrs() 
 {
-  showOverlay(" [ HPol XCorrs | VPol XCorrs ]"); 
+  showOverlay(" [ HPol XCorrs]  max_dt: <input size=5 id='xc_max_delay' value=" + xcorrs_max_delay+ " onChange='update_max_dt()'> [ VPol XCorrs ] "  ); 
   document.getElementById("overlay_c").innerHTML = "<div id='left_c' class='half'></div><div id='right_c' class='half'></div>"; 
   JSROOT.AssertPrerequisites("hierarchy", function() 
   {
-    h_map.drawXCorrs("left_c", xcorr_style,50); 
-    v_map.drawXCorrs("right_c", xcorr_style,50); 
+    h_map.drawXCorrs("left_c", xcorr_style,xcorrs_max_delay); 
+    v_map.drawXCorrs("right_c", xcorr_style,xcorrs_max_delay); 
   }
   );
 }
