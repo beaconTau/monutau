@@ -716,7 +716,10 @@ function drawCoherent(info)
       {
         first = i; 
       }
-      times.push(first == i ? 0 : mapper.deltaTs(i,first,x,y)); 
+      var reverse_sign = document.getElementById('map_reverse').checked; 
+      var sign = reverse_sign ? 1 : -1; 
+	
+      times.push(first == i ? 0 : sign*mapper.deltaTs(i,first,x,y)); 
     }
   }
 
@@ -1300,8 +1303,9 @@ function go(i)
 
           var avg_map =document.getElementById('map_avg').checked; 
 
-          h_map.compute(h_graphs,avg_map);
-          v_map.compute(v_graphs,avg_map);
+	  var reverse = document.getElementById('map_reverse').checked; 
+          h_map.compute(h_graphs,avg_map,reverse);
+          v_map.compute(v_graphs,avg_map,reverse);
 
           h_map.setTitle(avg_map ? "HPol (navgs=" + h_map.navg+")" : "HPol","azimuth (deg)","elevation (deg)"); 
           v_map.setTitle(avg_map ? "VPol (navgs=" + v_map.navg+")" : "VPol","azimuth (deg)","elevation (deg)"); 
