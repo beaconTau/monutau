@@ -31,9 +31,7 @@ sync: | $(RAW_DIR)
 ifdef REMOTE_HOST
 	date >> $@ 
 	-ssh -Ax -t midway "cd beacon/monutau; rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ > last_sync"
-
-
-#	rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >>last_sync 
+#	rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >last_sync 
 	sleep 1
 	cat last_sync >> $@ 
 	./do_touch.sh $(RAW_DIR) > do_touch
@@ -93,7 +91,7 @@ $(ROOT_DIR)/%.root: $(RAW_DIR)/%
 
 # Rule to make decimated file 
 $(ROOT_DIR)/%.decimated.root: $(ROOT_DIR)/%.root
-	ln $< $<.tmp 
+	ln -f $< $<.tmp 
 	beaconroot-decimate $(*F) 25 $(@D)/$(*F).root.tmp 
 	unlink $<.tmp 
 	mv $@.tmp $@ 
@@ -128,11 +126,11 @@ new_hk:
 
 # Merge all housekeeping into a single root file since it's small 
 $(HTML_DIR)/all_hk.root: new_hk  | $(HTML_DIR) rootify
-	hadd  $@.tmp $(ROOT_DIR)/hk/*/*/*.root
+	hadd  -f $@.tmp $(ROOT_DIR)/hk/*/*/*.root
 	mv $@.tmp $@
 
 
-$(HTML_DIR)/rootdata:  | $(HTML_DIR) 
+$(HTML_DIR)/rootdata: site.cfg | $(HTML_DIR) 
 	ln -sf $(ROOT_DIR) $(HTML_DIR)/rootdata 
 
 $(HTML_DIR)/jsroot: jsroot/scripts jsroot/style
