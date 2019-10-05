@@ -136,9 +136,24 @@ $(HTML_DIR)/rootdata: site.cfg | $(HTML_DIR)
 $(HTML_DIR)/jsroot: jsroot/scripts jsroot/style
 	mkdir -p $@
 	cp -r $^ $@
+$(HTML_DIR)/rfjs: rfjs/rf.js rfjs/FFT.js rfjs/KissFFT.js
+	mkdir -p $@
+	cp  $^ $@
 
 
-deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js $(HTML_DIR)/rf.js  $(HTML_DIR)/runlist.js $(HTML_DIR)/runlist.json  $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png $(HTML_DIR)/KissFFT.js $(HTML_DIR)/FFT.js | $(HTML_DIR) 
+
+$(HTML_DIR)/rf.js: rfjs/rf.js
+	cp  $< $@
+
+$(HTML_DIR)/FFT.js: rfjs/FFT.js
+	cp  $< $@
+
+$(HTML_DIR)/KissFFT.js: rfjs/KissFFT.js
+	cp  $< $@
+
+
+
+deploy:  rootify $(HTML_DIR)/rootdata $(HTML_DIR)/index.html $(HTML_DIR)/monutau.js $(HTML_DIR)/rfjs  $(HTML_DIR)/runlist.js $(HTML_DIR)/runlist.json  $(HTML_DIR)/all_hk.root $(HTML_DIR)/jsroot $(HTML_DIR)/monutau.ico $(HTML_DIR)/monutau.png | $(HTML_DIR) 
 	touch $@ 
 
 

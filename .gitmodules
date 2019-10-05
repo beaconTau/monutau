@@ -2,3 +2,6 @@
 	path = jsroot
 	url = https://github.com/cozzyd/jsroot
   branch = dev
+[submodule "rfjs"]
+	path = rfjs
+	url = https://github.com/cozzyd/rfjs
