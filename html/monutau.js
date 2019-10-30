@@ -1248,7 +1248,7 @@ function go(i)
 
         for (var ii = ngraphs; ngraphs < graph_canvases.length; ii++)
         {
-            document.getElementById(graph_canvases[ii]).style.display = 'none'; 
+            if (document.getElementById(graph_canvases[ii])) document.getElementById(graph_canvases[ii]).style.display = 'none'; 
         }
 
         if (document.getElementById('map').checked) //interferometry
