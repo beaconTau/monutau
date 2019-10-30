@@ -823,7 +823,7 @@ function xcorr_style(g)
   g.fMarkerColor = graph_colors[0]; 
 }
 
-var xcorrs_max_delay = 150; 
+var xcorrs_max_delay = 200; 
 
 function update_max_dt()
 {
@@ -1248,7 +1248,7 @@ function go(i)
 
         for (var ii = ngraphs; ngraphs < graph_canvases.length; ii++)
         {
-            document.getElementById(graph_canvases[ii]).style.display = 'none'; 
+            if (document.getElementById(graph_canvases[ii])) document.getElementById(graph_canvases[ii]).style.display = 'none'; 
         }
 
         if (document.getElementById('map').checked) //interferometry
