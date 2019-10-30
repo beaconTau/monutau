@@ -823,7 +823,7 @@ function xcorr_style(g)
   g.fMarkerColor = graph_colors[0]; 
 }
 
-var xcorrs_max_delay = 150; 
+var xcorrs_max_delay = 200; 
 
 function update_max_dt()
 {
