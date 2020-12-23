@@ -30,7 +30,7 @@ clean:
 sync: | $(RAW_DIR) 
 ifdef REMOTE_HOST
 	date >> $@ 
-	-ssh -Ax -t midway "cd beacon/monutau; rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ > last_sync"
+	rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ > last_sync
 #	rsync --prune-empty-dirs --exclude=".*" -av $(RSYNC_OPTS) $(REMOTE_HOST):$(REMOTE_PATH_BASE)/ $(RAW_DIR)/ >last_sync 
 	sleep 1
 	cat last_sync >> $@ 
