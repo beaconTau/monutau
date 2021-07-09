@@ -599,17 +599,31 @@ boresight = [1,0,0];
 max_phi = 180; 
 max_theta = 90.0; 
 
-antennas = [
+h_antennas = [
   RF.Antenna( 0,0,0, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
-, RF.Antenna( -6.039,-1.618,2.275, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
-, RF.Antenna( -1.272,-10.364,1.282, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
-, RF.Antenna( 3.411,-11.897,-0.432, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -30.46323775, -12.52208649,   4.46999022, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna(  -9.60219054, -46.82872785,  -0.67713143, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -30.58041715, -42.17715115,  13.79782586, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
  ]; 
 
-mapper = RF.AngleMapper(antennas); 
+v_antennas = [
+  RF.Antenna( 0,0,0, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -30.64956888, -12.54918813,   5.82636563, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -10.0159635 , -46.86937298,  -1.43651148, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+, RF.Antenna( -30.3944812 , -42.53609774,  13.95834976, boresight[0],boresight[1],boresight[2], max_phi, max_theta)
+ ]; 
 
-h_map = new RF.InterferometricMap(mapper,120,-180,180,60,-90,90); 
-v_map = new RF.InterferometricMap(mapper,120,-180,180,60,-90,90); 
+
+
+h_mapper = RF.AngleMapper(h_antennas); 
+v_mapper = RF.AngleMapper(v_antennas); 
+
+
+nbinsx = 180; 
+nbinsy = 90; 
+
+h_map = null;
+v_map = null; 
 
 
 
@@ -701,7 +715,8 @@ function drawCoherent(info)
   var v_graphs= []; 
 
   var first = 0; 
-  var times = []; 
+  var h_times = []; 
+  var v_times = []; 
   var h_names = []; 
   var v_names = []; 
   for (var i = 0; i < the_h_graphs.length; i++) 
@@ -712,14 +727,15 @@ function drawCoherent(info)
       v_graphs.push(the_v_graphs[i]); 
       h_names.push("HPol " + i); 
       v_names.push("VPol " + i); 
-      if (times.length == 0) 
+      if (h_times.length == 0) 
       {
         first = i; 
       }
       var reverse_sign = document.getElementById('map_reverse').checked; 
       var sign = reverse_sign ? 1 : -1; 
 	
-      times.push(first == i ? 0 : sign*mapper.deltaTs(i,first,x,y)); 
+      h_times.push(first == i ? 0 : sign*h_mapper.deltaTs(i,first,x,y)); 
+      v_times.push(first == i ? 0 : sign*v_mapper.deltaTs(i,first,x,y)); 
     }
   }
 
@@ -727,8 +743,8 @@ function drawCoherent(info)
   {
     if (document.getElementById("click_coh").checked) 
     {
-      var gh= RF.coherentSum(h_graphs,times); 
-      var gv= RF.coherentSum(v_graphs,times); 
+      var gh= RF.sumWithDelays(h_graphs,h_times); 
+      var gv= RF.sumWithDelays(v_graphs,v_times); 
       gh.fTitle = "Coherent HPol"; 
       gv.fTitle = "Coherent VPol"; 
       gh.fLineColor = 38; 
@@ -775,8 +791,8 @@ function drawCoherent(info)
         return out;
       }
 
-      var shift_h_graphs = make_shifted_copy(h_graphs,times,h_names);
-      var shift_v_graphs = make_shifted_copy(v_graphs,times,v_names);
+      var shift_h_graphs = make_shifted_copy(h_graphs,h_times,h_names);
+      var shift_v_graphs = make_shifted_copy(v_graphs,v_times,v_names);
 
 
       showOverlay("[ Aligned HPol, VPol ]"); 
@@ -1048,6 +1064,7 @@ function go(i)
         var ev = this.tgtobj['event.event_number']; 
         var N = this.tgtobj['event.buffer_length']; 
 
+
         var X = []; 
         var ii = 0; 
         for (var x = 0; x < N; x++) { X.push(x*2) }; 
@@ -1057,6 +1074,7 @@ function go(i)
         var do_avg = document.getElementById('avg_fft').checked; 
         var upsample = document.getElementById('upsample').value; 
         var autoscale = document.getElementById('evt_autoscale').checked; 
+        var run = ev / 1e9; 
 
         for (var ch = 0; ch < data.length; ch++)
         {
@@ -1070,7 +1088,14 @@ function go(i)
 
           var g= JSROOT.CreateTGraph(N, X, data[ch]); 
 
-          for (var y = 0; y < N; y++) { g.fY[y]-=64; } 
+          for (var y = 0; y < N; y++) 
+          { 
+            g.fY[y]-=64;
+            if (run > 1500 && run < 2000 && ch==7) 
+            {
+              g.fY[y] *=-1 ;
+            }
+          } 
           if (document.getElementById('filt').checked) 
           {
             var As = document.getElementById('filt_A').value.split(','); 
@@ -1253,6 +1278,12 @@ function go(i)
 
         if (document.getElementById('map').checked) //interferometry
         {
+
+          if (h_map == null)
+          {
+              h_map = new RF.InterferometricMap(h_mapper,nbinsx,-180,180,nbinsy,-90,90); 
+              v_map = new RF.InterferometricMap(v_mapper,nbinsx,-180,180,nbinsy,-90,90); 
+          }
 
 
           if (document.getElementById('map_crop').checked)
@@ -1891,11 +1922,42 @@ function monutau_load()
 
 function showMapConfig() 
 {
+  // load in the actual values... 
+
+  for (var ant = 0; ant <4; ant++) 
+  {
+    document.getElementById("hA"+ant+"_x").value = h_antennas[ant].pos[0];
+    document.getElementById("hA"+ant+"_y").value = h_antennas[ant].pos[1];
+    document.getElementById("hA"+ant+"_z").value = h_antennas[ant].pos[2];
+    document.getElementById("vA"+ant+"_x").value = v_antennas[ant].pos[0];
+    document.getElementById("vA"+ant+"_y").value = v_antennas[ant].pos[1];
+    document.getElementById("vA"+ant+"_z").value = v_antennas[ant].pos[2];
+  }
+  document.getElementById("map_nphi").value = nbinsx;
+  document.getElementById("map_ntheta").value = nbinsy;
   document.getElementById("mapconfig").style.display='block'
 }
 
 function hideMapConfig() 
 {
+
+  //save the antenna positions 
+  for (var ant = 0; ant <4; ant++) 
+  {
+    h_antennas[ant].pos[0]= document.getElementById("hA"+ant+"_x").value  ;
+    h_antennas[ant].pos[1]= document.getElementById("hA"+ant+"_y").value  ;
+    h_antennas[ant].pos[2]= document.getElementById("hA"+ant+"_z").value  ;
+    v_antennas[ant].pos[0]= document.getElementById("vA"+ant+"_x").value  ;
+    v_antennas[ant].pos[1]= document.getElementById("vA"+ant+"_y").value  ;
+    v_antennas[ant].pos[2]= document.getElementById("vA"+ant+"_z").value  ;
+  }
+
+  nbinsx = document.getElementById("map_nphi").value;
+  nbinsy = document.getElementById("map_ntheta").value;
+
+  //remake the maps
+  h_map = new RF.InterferometricMap(h_mapper,nbinsx,-180,180,nbinsy,-90,90); 
+  v_map = new RF.InterferometricMap(v_mapper,nbinsx,-180,180,nbinsy,-90,90); 
 
   go(-1); 
   document.getElementById("mapconfig").style.display='none'

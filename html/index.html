@@ -4,8 +4,7 @@
 
 
 
-    <link rel="shortcut icon"
-     href="monutau.ico">
+    <link rel="shortcut icon" href="monutau.ico">
 
     <script type="text/javascript" src="jsroot/scripts/JSRootCore.js?2d&hierarchy&io&tree"> </script>
     <script type="text/javascript" src="runlist.js"></script>
@@ -112,7 +111,7 @@
     {
       display: none; 
       width: 600px; 
-      height: 330px; 
+      height: 600px; 
       left: 50%; 
       margin-left:-300px; 
       position:fixed;
@@ -183,18 +182,59 @@
       <p>Num Maxima:<input id='map_nmax' value='3' size=2>  
       <p>Channel Mask:<input id='map_mask' value='15' size=2> 
       <p>Reverse sign:<input id='map_reverse' type='checkbox' >  
-      <p>Apply HPol offsets: <input type ='checkbox' checked id='map_applyhoffs'> 
+      <p>NBins phi:<input id='map_nphi' value='120' size=3>  NBins theta:<input id='map_ntheta' value='60' size=3>  
+      <p>Apply HPol offsets (e.g. cable delays): <input type ='checkbox' checked id='map_applyhoffs'> 
 
-      A0:<input id="offs_h0" size=5 value='3.46'>
-      A1:<input id="offs_h1" size=5 value='0'>
-      A2:<input id="offs_h2" size=5 value='5.92'>
-      A3:<input id="offs_h3" size=5 value='-7.33'>
-      <p>Apply VPol offsets: <input type ='checkbox' id='map_applyvoffs'> 
+      A0:<input id="offs_h0" size=5 value='-7.901'>
+      A1:<input id="offs_h1" size=5 value='-12.96'>
+      A2:<input id="offs_h2" size=5 value='0'>
+      A3:<input id="offs_h3" size=5 value='-8.11'>
+      <p>Apply VPol offsets (e.g. cable delays): <input type ='checkbox' checked id='map_applyvoffs'> 
 
-      A0:<input id="offs_v0" size=5 value='0'>
-      A1:<input id="offs_v1" size=5 value='0'>
-      A2:<input id="offs_v2" size=5 value='0'>
-      A3:<input id="offs_v3" size=5 value='0'>
+      A0:<input id="offs_v0" size=5 value='-13.12'>
+      A1:<input id="offs_v1" size=5 value='-14.69'>
+      A2:<input id="offs_v2" size=5 value='-8.09'>
+      A3:<input id="offs_v3" size=5 value='-8.03'>
+
+      <p> HPOL Antenna Positions: <br>
+      A0: <input id="hA0_x" size=8 value=""> 
+          <input id="hA0_y" size=8 value=""> 
+          <input id="hA0_z" size=8 value="">
+          <br> 
+      A1: <input id="hA1_x" size=8 value=""> 
+          <input id="hA1_y" size=8 value=""> 
+          <input id="hA1_z" size=8 value="">
+          <br> 
+      A2: <input id="hA2_x" size=8 value=""> 
+          <input id="hA2_y" size=8 value=""> 
+          <input id="hA2_z" size=8 value="">
+          <br> 
+      A3: <input id="hA3_x" size=8 value=""> 
+          <input id="hA3_y" size=8 value=""> 
+          <input id="hA3_z" size=8 value="">
+          <br> 
+
+
+
+
+
+          <p> VPOL Antenna Positions: <br>
+      A0: <input id="vA0_x" size=8 value=""> 
+          <input id="vA0_y" size=8 value=""> 
+          <input id="vA0_z" size=8 value="">
+          <br> 
+      A1: <input id="vA1_x" size=8 value=""> 
+          <input id="vA1_y" size=8 value=""> 
+          <input id="vA1_z" size=8 value="">
+          <br> 
+      A2: <input id="vA2_x" size=8 value=""> 
+          <input id="vA2_y" size=8 value=""> 
+          <input id="vA2_z" size=8 value="">
+          <br> 
+      A3: <input id="vA3_x" size=8 value=""> 
+          <input id="vA3_y" size=8 value=""> 
+          <input id="vA3_z" size=8 value="">
+          <br> 
 
 
       <p>fmin: <input id="map_fmin" size=5 value='0.02'>

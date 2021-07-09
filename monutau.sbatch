@@ -13,8 +13,8 @@
 #SBATCH --output=monutau.out
 #SBATCH --error=monutau.err
 #SBATCH --time=1:00:00
-#SBATCH --partition=sandyb
-#SBATCH --account=pi-avieregg
+#SBATCH --partition=kicpaa
+#SBATCH --account=kicpaa
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 
